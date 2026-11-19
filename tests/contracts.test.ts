@@ -52,6 +52,7 @@ test("MCP coordinator can delegate while specialist tool lists remain isolated",
     assert.equal(r.status, 0); assert.equal(r.stdout.includes("DO_NOT_OUTPUT_THIS"), false);
     const responses = r.stdout.trim().split("\n").map(s => JSON.parse(s)); const tools = responses.find(r => r.id === 2).result.tools;
     assert.equal(tools.some((t: any) => t.name === "agent_delegate"), role === "hermes"); assert.equal(tools.some((t: any) => t.name === "calendar_create"), true);
+    for (const name of ["library_list", "library_read", "library_save", "library_trash"]) assert.equal(tools.some((t: any) => t.name === name), true);
   }
 });
 test("streaming handles UTF-8 and CRLF boundaries split across network chunks", async () => {

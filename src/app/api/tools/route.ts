@@ -8,12 +8,23 @@ import { reminderFeed, updateReminder } from "@/server/reminders";
 import { readLearning, record, saveLearningRecord } from "@/server/learning-store";
 import { sourceSearch } from "@/server/learning-files";
 import { kinds } from "@/lib/learning";
+import { libraryList, libraryRead, saveLibrary, deleteLibrary, importAgentLibraryFile } from "@/server/library";
 import { saveAndScheduleLearning, syncAssignmentTask, syncPlanTasks, syncLearningCalendar } from "@/server/learning-integrations";
 const schema = z.object({ action: z.string().max(60), agent: z.enum(["hermes", "secretary", "developer"]), args: z.record(z.string(), z.unknown()).default({}) });
 export async function POST(req: Request) {
   try {
-    localRequest(req, true); const { action, agent, args } = schema.parse(await body(req, 300000)); let result: unknown;
+    localRequest(req, true); const { action, agent, args } = schema.parse(await body(req, 1000000)); let result: unknown;
     switch (action) {
+      case "library_list": result = libraryList(args); break;
+      case "library_read": result = libraryRead(z.uuid().parse(args.id)); break;
+      case "library_save": {
+        const { id, revision, filePaths, ...data } = args;
+        const imported = z.array(z.string().max(2000)).max(12).parse(filePaths || []).map(file => importAgentLibraryFile(file, agent));
+        if (imported.length) { const preserved = data.attachmentIds === undefined && id ? libraryRead(z.uuid().parse(id)).fileIds : z.array(z.uuid()).parse(data.attachmentIds || []); data.attachmentIds = [...new Set([...preserved, ...imported.map(f => f.id)])]; }
+        const item = saveLibrary(data, id ? z.uuid().parse(id) : undefined, revision === undefined ? undefined : z.number().int().positive().parse(revision), agent);
+        result = { ...item, url: `http://127.0.0.1:3210/library?item=${item.id}` }; break;
+      }
+      case "library_trash": result = deleteLibrary(z.uuid().parse(args.id), z.number().int().positive().parse(args.revision), "trash"); break;
       case "tasks_list": result = await listTasks(); break;
       case "tasks_create": result = await saveTask(args); break;
       case "tasks_update": result = await saveTask(args, z.string().parse(args.id)); break;

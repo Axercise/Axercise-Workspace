@@ -3258,3 +3258,6 @@ input::placeholder,textarea::placeholder {
 
 .calendar-view-options{display:flex;gap:4px;margin:6px 22px 10px;padding:3px;background:#ffffff06;border:1px solid #ffffff13;border-radius:9px}.calendar-view-options button{flex:1;font-size:13px;color:#aaa;padding:5px 8px;border-radius:6px}.calendar-view-options button[aria-pressed="true"]{background:#ffffff12;color:#eee}.agenda-item time .agenda-event-day{display:block;font-size:12px;line-height:1.6;color:#c9c9c9;margin-bottom:4px}
 .task-copy .task-calendar-label,.agenda-task-label{font-size:12px}
+
+/* Saved chat attachments */
+.chat-saved-files{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.chat-saved-files>a,.chat-file-pending{display:flex;align-items:center;gap:7px;font-size:12px;border:1px solid #ffffff22;border-radius:8px;padding:8px 10px;color:#bbb;max-width:100%;overflow-wrap:anywhere}.composer-file-attachments{display:flex;gap:7px;flex-wrap:wrap;padding:12px 14px 0}.chat-file-pending>span{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.chat-file-pending>button{color:#999}

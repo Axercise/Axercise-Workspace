@@ -24,6 +24,9 @@ async def main():
                 assert "tasks_create" in names and "calendar_create" in names
                 assert {"learning_list", "learning_read", "learning_search", "learning_save", "learning_link"} <= names
                 assert {"reminders_list", "reminders_update"} <= names
+                assert {"library_list", "library_read", "library_save", "library_trash"} <= names
+                saved = await client.call_tool("library_list", {"limit": 1})
+                assert not saved.is_error
                 task_update = next(tool for tool in tools.tools if tool.name == "tasks_update")
                 assert task_update.input_schema["properties"]["calendarEnabled"]["type"] == "boolean"
                 learning = await client.call_tool("learning_list", {"kind": "courses"})

@@ -2,6 +2,18 @@
 
 วันที่: 19 พฤศจิกายน 2026
 
+## คลังบันทึก — 19 พฤศจิกายน 2026
+
+- เพิ่ม local catalog และไฟล์ต้นฉบับแยกจาก Notion พร้อมข้อความ/ลิงก์/รูป/ไฟล์/เสียง/วิดีโอ ค้นหา แท็ก รายการโปรด pagination และถังขยะที่กู้คืนได้ ไฟล์แชร์หลายรายการไม่ถูกลบเมื่อยังมีผู้ใช้อ้างอิง
+- API ตรวจ Host/Origin, revision, capture key, UUID, ขนาด upload และชนิด URL ไฟล์ active content บังคับดาวน์โหลดและมี nosniff/CSP; file route รองรับ range สำหรับ media โดยไม่ยอม path traversal
+- Chat proxy คงภาพให้ vision และเพิ่ม attachment IDs ที่ตรวจจาก catalog ฝั่ง server ให้เครื่องมือ library_save เก็บต้นฉบับจริง ข้อมูลอ้างอิงนี้ไม่แสดงเป็นข้อความเทคนิคในหน้าแชท
+- MCP ให้ทุก Agent ใช้ library_list/read/save/trash; การนำเข้าไฟล์จาก Discord จำกัดโฟลเดอร์ cache/attachments/downloads ภายใน Profile เดียวกันและตรวจ symlink/realpath
+- ชุดทดสอบรวม 108 รายการผ่าน โดยเพิ่ม library 18 กรณี ครอบคลุม persistence/bytes, ชื่อซ้ำ, idempotency, stale edit, search/filter/pagination, URL validation, trash/restore/shared-file deletion, staging cleanup, corrupt catalog, import profile/symlink boundary, chat references/proxy, range/active-content download, local auth และเครื่องมือทั้งสาม Agent รวมการเพิ่มไฟล์ผ่าน AI โดยรักษาไฟล์เดิมไว้
+- Production build/TypeScript ผ่าน และลองผ่าน Playwright กับไฟล์จริง: อัปโหลด PNG+ข้อความในรายการเดียว/หลายลิงก์, เปิดกลับหลัง reload, favorite, ค้นหาข้อความที่แก้ไข, trash/restore/permanent delete และวางภาพจาก clipboard ไฟล์ดาวน์โหลดมี bytes ตรง และข้อความ HTML แสดงเป็นข้อความโดยไม่ execute
+- PDF เปิดใน viewer จริง; WAV โหลด metadata ได้ duration 1 วินาที ตรวจ Desktop 1536×960 และ Mobile 390×844 รวม editor/modal โดยไม่ล้นแนวนอน ภาพอยู่ใน test-results/library-*.png
+- ทดสอบผ่าน Hermes และโมเดลที่ตั้งอยู่จริง: ส่งภาพ PNG กับไฟล์ข้อความและลิงก์ในแชท Agent เรียก mcp__axercise__library_save และ library_read บันทึกรวมหนึ่งรายการพร้อมต้นฉบับ 2 ไฟล์ ตรวจ bytes รูปเท่าต้นฉบับ แล้วลบเฉพาะรายการ/Session ทดสอบ หลักฐานใน test-results/library-live-verification.json
+- MCP client ของ Hermes initialize/list/call library_list ผ่านครบสามโปรไฟล์: Hermes 24 tools, Secretary/Developer 23 tools ไม่ส่งข้อความทดสอบเข้า Discord; การนำเข้าไฟล์ cache ฝั่ง Discord มี automated profile/realpath boundary และ byte-copy tests
+
 ## ศูนย์สถานะระบบ — 19 พฤศจิกายน 2026
 
 - ตรวจบัญชีจริงผ่าน 9 รายการที่ตั้งค่าไว้: Axercise controller/Windows heartbeat, AI Hermes/Secretary/Developer, Notion พร้อม data source ทั้งสาม, Google Calendar และ Discord ทั้งสามบอท OpenRouter แสดง unconfigured เพราะยังไม่มี Key
