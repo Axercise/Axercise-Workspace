@@ -1,0 +1,10 @@
+export type ReminderGroup = "calendar" | "notion" | "learning" | "draft" | "test";
+export type ScheduledDraft = { id: string; title: string; deadline: string };
+export type ReminderCandidate = { aliases: string[]; groups: ReminderGroup[]; title: string; detail: string; dueAt: number; href: string; kind: string; priority: number; expiresAt?: number };
+export type Reminder = ReminderCandidate & { id: string; status: "pending" | "acknowledged" | "cancelled"; snoozedUntil: number; createdAt: number; updatedAt: number; acknowledgedAt?: number };
+export type ReminderChannel = { state: "pending" | "sent"; attemptedAt?: number; sentAt?: number; leaseUntil?: number; error?: string };
+export type ReminderDelivery = { id: string; reminderId: string; slot: string; createdAt: number; superseded?: boolean; desktop: ReminderChannel; discord: ReminderChannel; discordMessageId?: string; discordChannelId?: string; reactionsCheckedAt?: number; consumedReactions?: string[] };
+export type ReminderSettings = { enabled: boolean; desktop: boolean; discord: boolean; sound: boolean; repeatMinutes: number };
+export type ReminderState = { version: 1; settings: ReminderSettings; reminders: Reminder[]; deliveries: ReminderDelivery[]; draftClients?: Record<string, { drafts: ScheduledDraft[]; updatedAt: number }>; sourceErrors: Record<string, string>; lastScanAt: number; native: { available: boolean; updatedAt: number; error?: string } };
+export type ReminderFeed = { settings: ReminderSettings; reminders: Reminder[]; deliveries: ReminderDelivery[]; sourceErrors: Record<string, string>; lastScanAt: number; native: ReminderState["native"]; discordConfigured: boolean };
+export const REMINDER_OFFSETS = [30, 15, 5, 0];

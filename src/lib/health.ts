@@ -1,0 +1,12 @@
+export const HEALTH_IDS = ["workspace", "ai:hermes", "ai:secretary", "ai:developer", "notion", "calendar", "discord:hermes", "discord:secretary", "discord:developer", "openrouter"] as const;
+export type HealthId = typeof HEALTH_IDS[number];
+export type HealthStatus = "healthy" | "degraded" | "offline" | "auth_required" | "unconfigured";
+export type HealthProblem = "none" | "network" | "auth" | "permission" | "rate_limit" | "gateway" | "setup" | "service";
+export type HealthResult = { id: HealthId; name: string; group: "workspace" | "ai" | "notion" | "calendar" | "discord"; status: HealthStatus; problem: HealthProblem; message: string; details: string[]; checkedAt: number; latencyMs: number; optional?: boolean; provider?: "openai-codex" | "openrouter" };
+export type HealthConnection = HealthResult & { lastSuccessAt?: number; failures: number; firstFailureAt?: number; incident?: { id: string; startedAt: number; announced: boolean } };
+export type HealthEvent = { id: string; serviceId: HealthId; incidentId: string; kind: "down" | "recovered"; name: string; message: string; at: number };
+export type HealthDelivery = { state: "pending" | "sent"; attemptedAt?: number; sentAt?: number; leaseUntil?: number; error?: string };
+export type HealthAlert = { id: string; eventIds: string[]; title: string; message: string; createdAt: number; expiresAt: number; superseded?: boolean; desktop: HealthDelivery; discord: HealthDelivery };
+export type HealthState = { version: 1; settings: { alertsEnabled: boolean; desktop: boolean; discord: boolean }; services: Partial<Record<HealthId, HealthConnection>>; events: HealthEvent[]; alerts: HealthAlert[]; lastFullCheckAt: number; repairGrace?: Partial<Record<"hermes" | "secretary" | "developer", number>> };
+export type HealthFeed = { settings: HealthState["settings"]; services: HealthConnection[]; events: HealthEvent[]; checkedAt: number; stale: boolean; checking: boolean; discordConfigured: boolean; failedDeliveries: number; repairing?: string[] };
+export const healthProblem = (status: HealthStatus) => !["healthy", "unconfigured"].includes(status);
