@@ -25,6 +25,9 @@ async def main():
                 assert {"learning_list", "learning_read", "learning_search", "learning_save", "learning_link"} <= names
                 assert {"reminders_list", "reminders_update"} <= names
                 assert {"library_list", "library_read", "library_save", "library_trash"} <= names
+                assert {"briefings_list", "briefings_read", "briefings_generate", "briefings_settings"} <= names
+                briefing = await client.call_tool("briefings_list", {})
+                assert not briefing.is_error
                 saved = await client.call_tool("library_list", {"limit": 1})
                 assert not saved.is_error
                 task_update = next(tool for tool in tools.tools if tool.name == "tasks_update")

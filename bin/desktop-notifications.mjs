@@ -30,6 +30,25 @@ export async function sendDesktopHealthNotifications(deliveries = []) {
     } catch { active.delete(key); await report("failed"); }
   }
 }
+export async function sendDesktopBriefings(deliveries = []) {
+  if (!deliveries.length) return;
+  const ready = await initializeDesktopNotifications();
+  for (const item of deliveries) {
+    if (!/^[a-f0-9]{24}$/.test(item.id)) continue;
+    const report = action => feedback({ id: item.id, action }, "briefings");
+    if (!ready) { await report("failed"); continue; }
+    const key = `briefing:${item.id}`; if (active.has(key)) continue;
+    active.set(key, Date.now()); let failed = false;
+    try {
+      toaster.notify({ title: item.title, message: item.message, appID, id: 0x20000000 + parseInt(item.id.slice(0, 7), 16), sound: item.sound, duration: "long", actions: ["เปิด Daily Briefing"] }, async (error, response, metadata) => {
+        active.delete(key); if (error) { failed = true; await report("failed"); return; }
+        const action = metadata?.activationType || metadata?.activationValue || response;
+        if (["เปิด Daily Briefing", "activate", "click"].includes(action)) spawn("rundll32.exe", ["url.dll,FileProtocolHandler", `http://127.0.0.1:3210/briefing?report=${item.id}`], { detached: true, stdio: "ignore", windowsHide: true }).unref();
+      });
+      setTimeout(() => { if (!failed) void report("sent"); }, 1500).unref();
+    } catch { active.delete(key); await report("failed"); }
+  }
+}
 export async function initializeDesktopNotifications() {
   if (process.platform !== "win32") { await feedback({ action: "health", available: false, error: "การแจ้งเตือน native รองรับ Windows; ใช้การแจ้งเตือนจากเบราว์เซอร์แทนได้" }); return false; }
   if (installed) { await feedback({ action: "health", available: true }); return true; }

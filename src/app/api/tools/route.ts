@@ -5,6 +5,7 @@ import { listTasks, listNotes, saveTask, saveNote, archiveNotion } from "@/serve
 import { listEvents, saveEvent, removeEvent } from "@/server/calendar";
 import { delegate } from "@/server/hermes";
 import { reminderFeed, updateReminder } from "@/server/reminders";
+import { briefingFeed, generateBriefing, readBriefing, updateBriefingSettings } from "@/server/briefings";
 import { readLearning, record, saveLearningRecord } from "@/server/learning-store";
 import { sourceSearch } from "@/server/learning-files";
 import { kinds } from "@/lib/learning";
@@ -15,6 +16,10 @@ export async function POST(req: Request) {
   try {
     localRequest(req, true); const { action, agent, args } = schema.parse(await body(req, 1000000)); let result: unknown;
     switch (action) {
+      case "briefings_list": result = briefingFeed(true); break;
+      case "briefings_read": result = readBriefing(z.string().regex(/^[a-f0-9]{24}$/).parse(args.id)); break;
+      case "briefings_generate": { const report = await generateBriefing(z.enum(["morning", "evening"]).parse(args.period), "agent"); result = { ...report, url: `http://127.0.0.1:3210/briefing?report=${report.id}` }; break; }
+      case "briefings_settings": result = updateBriefingSettings(args); break;
       case "library_list": result = libraryList(args); break;
       case "library_read": result = libraryRead(z.uuid().parse(args.id)); break;
       case "library_save": {

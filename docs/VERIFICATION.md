@@ -2,6 +2,21 @@
 
 วันที่: 19 พฤศจิกายน 2026
 
+## Daily Briefing — 19 พฤศจิกายน 2026
+
+- เพิ่มรายงานเช้า 08:00 / ก่อนนอน 21:00 เวลาไทย พร้อมประวัติ, unread, ลิงก์งานต้นทาง และการตั้งค่ารอบ/เวลา/Windows/Discord แยกกัน รายงานอ้างอิงข้อมูลจริงโดยไม่เรียกโมเดลเพิ่มหรือเปลี่ยนสถานะงาน
+- รวมการบ้าน–To-do–Calendar ที่ลิงก์กัน; Completed ของการบ้านยังอยู่ในรายการรอส่ง ต่างจาก Submitted/Graded และแยกประวัติ Done เดิมออกจากความคืบหน้าที่บันทึกวันนี้ เมื่ออ่านบริการไม่ได้จะแสดงสถานะและเวลา ไม่ใช้ cache ข้ามบัญชี
+- Scheduler บันทึก slot/lease ถาวร ไม่ส่งรอบเดิมซ้ำเมื่อ restart หรือเปลี่ยนเวลา ตามส่งได้ไม่เกิน 2 ชั่วโมง รองรับรอบดึกข้ามเที่ยงคืน ปิดรอบระหว่างอ่านข้อมูลแล้วไม่ส่งต่อ และย้ายรอบที่ยังไม่เคยสร้างรายงานไปเวลาใหม่ได้
+- Discord ใช้ nonce และตรวจข้อความของบอทเดิมก่อนลองใหม่เมื่อคำตอบสูญหาย จำกัด mention เฉพาะเจ้าของและจำกัดความยาว Windows ใช้ native dispatcher เดิม แยก notification ID และ feedback endpoint ของ Briefing
+- เพิ่ม automated tests 26 กรณี ครอบคลุมวัน/เวลาไทย, catch-up/activation, dedup/archives/submission, all-day end, นัดสอบที่แก้เวลาใน Google, progress/reopening/observed changes/focus/review, cache scope/outage, concurrent claims, disable/reschedule/expiry, Discord receipt/reconciliation/mentions, native leases, corrupt state และ local/internal/MCP auth
+- ตรวจรวมรอบแรก 132/133 ผ่าน โดยกรณี Shortcut ของ Windows เดิมพบ PowerShell ETIMEDOUT ที่ขีดจำกัด 15 วินาที จึงเพิ่มเวลารอแบบมีขอบเขตเป็น 30 วินาที แล้วตรวจ Daily Briefing + Startup แยกกันผ่านครบ 29/29 รวมกรณีสิทธิ์/การรักษา Shortcut ของแอปอื่น ตรวจกรณี Calendar projection ที่ Done ขณะ Notion อ่านไม่ได้ผ่านเพิ่มเติม ชุดปัจจุบันมี 134 กรณี
+- Production build และ TypeScript ผ่าน ตรวจผ่าน Playwright ทั้ง empty state, สร้างสรุปโดยยังไม่ส่ง, งานแบบขยาย, เลือกรอบก่อนนอน, ประวัติที่ไม่ถูก polling เปลี่ยนทับ, แจ้งรายงานใหม่, ตั้งเวลา/ช่องทาง และคำเตือนเมื่อ Calendar อ่านไม่ได้ เมนูมีครบ Workspace/Learning/Library
+- ตรวจความกว้าง 390, 1000, 1440, 1920 และ 2560 px ไม่ล้นแนวนอนและไม่เหลือช่องว่างขวา; settings modal อยู่ภายใน viewport ภาพตรวจอยู่ใน `.axercise/briefing-*.png` ไม่เผยแพร่ขึ้น Git
+- ทดสอบรายงานกับข้อมูลจริง: อ่าน Notion, Google Calendar และ Learning ได้สถานะ fresh ครบสามแหล่ง; กดลิงก์จากรายงานแล้วเปิดนัดหมายที่ถูกต้องใน Workspace โดยไม่บันทึกแก้ไขต้นทาง
+- Secretary ส่งรายงานจริงเข้า Discord หนึ่งฉบับ ตรวจ receipt และสถานะ sent ถาวรแล้ว; นำรายงานเดียวกันเข้าคิวตรวจ Windows หนึ่งครั้งและได้รับ feedback ว่า native dispatch ถูกยอมรับ ไม่ได้ถือว่าเป็นการยืนยันจากผู้ใช้ว่าเห็น banner บนจอ กรณีส่งอัตโนมัติตามเวลาตรวจด้วย isolated clock fixtures โดยไม่แก้เวลาคอม/เวลาสรุปจริง
+- MCP client ของ Hermes initialize/list/call briefings_list ผ่านครบสามโปรไฟล์: Hermes 28 tools, Secretary/Developer 27 tools มี briefings_list/read/generate/settings ทั้งหมด หลักฐานรายงานจริงอยู่ใน `.axercise/briefing-live-proof.json` และไม่ถูก commit
+- หลังเปิดบริการกลับ ตรวจ Health กับบัญชีจริงได้ healthy 9/9 รายการที่ตั้งค่าไว้ และ Gateway Discord ทั้งสาม connected โดยไม่มีงานที่ต้องซ่อม OpenRouter ยังเป็น unconfigured ตามเดิม
+
 ## คลังบันทึก — 19 พฤศจิกายน 2026
 
 - เพิ่ม local catalog และไฟล์ต้นฉบับแยกจาก Notion พร้อมข้อความ/ลิงก์/รูป/ไฟล์/เสียง/วิดีโอ ค้นหา แท็ก รายการโปรด pagination และถังขยะที่กู้คืนได้ ไฟล์แชร์หลายรายการไม่ถูกลบเมื่อยังมีผู้ใช้อ้างอิง

@@ -4,7 +4,7 @@ import { spawn, execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { createController, CONTROL_HOST, CONTROL_PORT } from "./control.mjs";
 import { root, dataDir, agents, ensureConfig, readConfig, writeJSON, findHermes, hermesArgs, provision, agentEnv } from "./runtime.mjs";
-import { initializeDesktopNotifications, sendDesktopNotifications, sendDesktopHealthNotifications } from "./desktop-notifications.mjs";
+import { initializeDesktopNotifications, sendDesktopNotifications, sendDesktopHealthNotifications, sendDesktopBriefings } from "./desktop-notifications.mjs";
 ensureConfig();
 const children = new Map(); let stopping = false, fingerprint = "", timer, tick;
 const retry = new Map();
@@ -55,7 +55,7 @@ async function reminderTick() {
   try {
     await initializeDesktopNotifications();
     const response = await fetch("http://127.0.0.1:3210/api/internal/tick", { method: "POST", headers: { Authorization: `Bearer ${readConfig().serviceToken}` }, signal: AbortSignal.timeout(55000) });
-    if (response.ok) { const data = await response.json(); await sendDesktopNotifications(data.desktop || []); await sendDesktopHealthNotifications(data.healthDesktop || []); }
+    if (response.ok) { const data = await response.json(); await sendDesktopNotifications(data.desktop || []); await sendDesktopHealthNotifications(data.healthDesktop || []); await sendDesktopBriefings(data.briefingDesktop || []); }
   } catch {} finally { tickBusy = false; }
 }
 tick = setInterval(() => void reminderTick(), 20000);

@@ -9,7 +9,7 @@ const shortcutName = "Axercise Workspace.lnk";
 const shortcutCode = fs.readFileSync(new URL("./windows-shortcut.cs", import.meta.url), "utf8");
 const literal = value => `'${value.replaceAll("'", "''")}'`;
 function powershell(script, shortcut = false) {
-  const result = spawnSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(`[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false); $ErrorActionPreference='Stop'; ${shortcut ? `Add-Type -TypeDefinition ${literal(shortcutCode)}; ` : ''}${script}`, "utf16le").toString("base64")], { windowsHide: true, encoding: "utf8", timeout: 15000 });
+  const result = spawnSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(`[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false); $ErrorActionPreference='Stop'; ${shortcut ? `Add-Type -TypeDefinition ${literal(shortcutCode)}; ` : ''}${script}`, "utf16le").toString("base64")], { windowsHide: true, encoding: "utf8", timeout: 30000 });
   if (result.status !== 0) throw new Error("ไม่สามารถจัดการการเปิดพร้อม Windows ได้ กรุณาลองอีกครั้ง", { cause: result.error?.message || result.stderr });
   return result.stdout.trim();
 }
