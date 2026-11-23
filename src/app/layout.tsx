@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import "./learning.css";
+import "./interface.css";
 import { NotificationCenter } from "@/components/notification-center";
 import { HealthCenter } from "@/components/health-center";
 const workspaceFont = localFont({
