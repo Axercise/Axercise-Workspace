@@ -80,16 +80,21 @@ export function validateReferences(state: LearningState, kind: LearningKind, ite
 export function saveLearningRecord<K extends LearningKind>(kind: K, input: unknown, id?: string, expectedRevision?: number): LearningRecords[K] {
   return changeLearning(state => {
     const previous = id ? record(state, kind, id) : null;
-    if (kind === "documents" && !previous) throw new AppError("เพิ่มเอกสารใหม่ด้วยการอัปโหลดไฟล์");
     if (previous && expectedRevision !== undefined && previous.revision !== expectedRevision) throw new AppError("รายการนี้เปลี่ยนไปแล้ว โหลดข้อมูลล่าสุดก่อนบันทึกอีกครั้ง", 409);
     const data = input as Record<string, unknown>;
     if (!data || typeof data !== "object" || Array.isArray(data)) throw new AppError("ข้อมูลไม่ถูกต้อง");
+    if (kind === "documents" && !previous && !data.url) throw new AppError("เพิ่มเอกสารใหม่ด้วยการอัปโหลดไฟล์ หรือเพิ่มลิงก์ที่ต้องการเก็บ");
     const item = learningSchemas[kind].parse({ ...previous, ...data, id: previous?.id || randomUUID(), createdAt: previous?.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString(), revision: (previous?.revision || 0) + 1 });
     if (previous && "courseId" in previous && "courseId" in item && previous.courseId !== item.courseId) throw new AppError("เปลี่ยนรายวิชาของรายการเดิมไม่ได้");
     if (kind === "documents" && previous) {
       const before = previous as LearningRecords["documents"], doc = item as LearningRecords["documents"];
       if (before.deletedAt) throw new AppError("เอกสารถูกลบแล้ว", 404);
+      if (before.url && !doc.url) throw new AppError("รายการลิงก์ต้องมี URL หากไม่ต้องการเก็บแล้วให้ลบรายการนี้");
       doc.versions = before.versions; doc.deletedAt = before.deletedAt; doc.filesDeletedAt = before.filesDeletedAt; doc.notionDeletedAt = before.notionDeletedAt;
+    }
+    if (kind === "documents" && !previous) {
+      const doc = item as LearningRecords["documents"];
+      doc.deletedAt = null; doc.filesDeletedAt = null; doc.notionDeletedAt = null;
     }
     if (kind === "assessments") (item as LearningRecords["assessments"]).calendarId = (previous as LearningRecords["assessments"] | null)?.calendarId || null;
     if (kind === "plans") {

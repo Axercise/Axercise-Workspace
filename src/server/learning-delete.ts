@@ -6,7 +6,7 @@ import { changeLearning, fileLocation, LEARNING, readLearning, record } from "./
 export function documentDeletionDetails(id: string) {
   const s = readLearning(), d = record(s, "documents", id), versions = new Set(d.versions.map(v => v.id));
   if (d.deletedAt) throw new AppError("เอกสารถูกลบแล้ว", 404);
-  return { id: d.id, title: d.title, revision: d.revision, versions: d.versions.length,
+  return { id: d.id, title: d.title, revision: d.revision, versions: d.versions.length, ...(d.url ? { url: d.url } : {}),
     notes: s.records.notes.filter(n => n.documentId === id || n.sources.some(source => source.documentId === id)).length,
     sets: s.records.sets.filter(set => set.sourceVersionIds.some(v => versions.has(v)) || set.sources.some(source => source.documentId === id)).length,
     submissions: s.records.assignments.filter(a => a.submittedVersionId && versions.has(a.submittedVersionId)).map(a => a.title) };
@@ -38,5 +38,5 @@ export function deleteDocument(id: string, revision: number) {
   });
   cleanupDeletedDocuments();
   const pending = !record(readLearning(), "documents", id).filesDeletedAt;
-  return { ok: true, cleanupPending: pending, message: pending ? "ลบเอกสารแล้ว ไฟล์บางส่วนยังถูกใช้งาน ระบบจะลองลบอีกครั้ง" : "ลบเอกสารและไฟล์ทุกเวอร์ชันแล้ว" };
+  return { ok: true, cleanupPending: pending, message: before.url ? "ลบลิงก์จากรายวิชาแล้ว" : pending ? "ลบเอกสารแล้ว ไฟล์บางส่วนยังถูกใช้งาน ระบบจะลองลบอีกครั้ง" : "ลบเอกสารและไฟล์ทุกเวอร์ชันแล้ว" };
 }

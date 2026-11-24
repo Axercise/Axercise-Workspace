@@ -18,6 +18,8 @@ Implemented on 17 November 2026 for this Windows computer, following Project_Pla
 
 ## Documents and AI
 
+- Course documents optionally have `url` for a web reference. The optional field remains absent on legacy file records, preserving existing Notion sync hashes. Link records have no local versions and cannot be converted to uploaded files or file submissions. URL validation allows only HTTP(S), rejects embedded credentials/control characters, and never fetches destinations while saving.
+- The documents pane and homework attachments support link creation, metadata/URL filtering, pinned cards, safe external opening, copy/edit/delete and a link detail dialog. Links are included in metadata sync and ZIP exports; full-text retrieval and page citations continue to use actual uploaded file versions. All agents save links through the existing `learning_save` tool using `kind=documents` and `data={courseId,title,url}`.
 - `npm run setup:learning` installs pinned PyMuPDF 1.28.2 at `%LOCALAPPDATA%/Axercise/runtimes/learning-python`; override with AXERCISE_LEARNING_PYTHON. Runtime/user files are excluded from Next output tracing.
 - PDF/image preview, downloads/ranges, Office/text extraction, version notes, per-version bookmarks/reading positions and checksum recovery warnings.
 - Limits: file 50 MiB, PDF 500 pages, extracted text 2 million characters, ZIP 256 MiB. Uploaded ZIP/code files are stored, never executed.

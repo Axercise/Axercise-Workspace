@@ -1,6 +1,16 @@
 # Axercise — สถานะการตรวจสอบ
 
-วันที่: 23 พฤศจิกายน 2026
+วันที่: 24 พฤศจิกายน 2026
+
+## ลิงก์ในเอกสารเรียน — 24 พฤศจิกายน 2026
+
+- เพิ่มลิงก์ HTTP(S) ในเอกสารรายวิชาและเอกสารประกอบการบ้าน พร้อมชื่อ หมวด บท แท็ก โน้ต และปักหมุด มีการค้นชื่อ/URL, ตัวกรองไฟล์–ลิงก์, ปุ่มเปิดต้นทางในแท็บใหม่, คัดลอก, แก้ไข และยืนยันก่อนลบ
+- รายการลิงก์ไม่มี file versions; หน้าอ่านลิงก์แจ้งว่าเก็บเฉพาะที่อยู่เว็บ ส่วนการอ่านแบบออฟไลน์และค้นเนื้อหาใช้ไฟล์ที่อัปโหลด URL จำกัดความยาว/โปรโตคอลและปฏิเสธ user/password ฝังใน URL, control characters และ backslash การบันทึกไม่เรียกเว็บไซต์ปลายทาง
+- เพิ่ม optional URL โดยไม่เติม field ให้ไฟล์เก่าที่ไม่มี URL จึงรักษา fingerprint ที่ใช้ซิงก์ Notion เดิม ลิงก์รวมใน metadata sync และ ZIP แต่ใช้แทนเวอร์ชันไฟล์ที่ส่งการบ้านไม่ได้; การลบลิงก์ลบเฉพาะรายการในรายวิชา
+- เพิ่ม automated tests 10 กรณี ครอบคลุม offline persistence, URL validation, legacy hashes, optimistic edits, file/link boundaries, course/assignment ownership, deletion/tombstones, mixed ZIP round-trip, Notion URL edits/unsafe remote input และ local/MCP auth รวมกับ Learning, contracts และ Daily Briefing ผ่าน 69/69 กรณี TypeScript และ production build ผ่าน
+- Playwright กับหน้าเว็บจริงผ่าน: สร้างลิงก์พร้อมโน้ต/แท็ก/ปักหมุด, reload, ค้นด้วย URL, กรองไฟล์/ลิงก์, แก้ URL, คัดลอกผ่าน clipboard stub และเปิดแท็บใหม่ที่มี noopener โดยดักหน้า example.com ภายใน browser test ไม่ดาวน์โหลดเว็บจริง
+- อัปโหลด TXT ทดลองร่วมกับลิงก์ เปิด viewer/ดาวน์โหลด bytes ตรงกับต้นฉบับ และค้นเนื้อหาได้ ยกเลิกการลบแล้วยังอยู่ ยืนยันลบลิงก์แล้วไฟล์อื่นยังอยู่ ตรวจ 1440×960, 1024×768 และ 390×844 ไม่ล้นแนวนอน/ขอบ modal และไม่มี JavaScript page error ลบข้อมูลทดลองและไฟล์ทดลองออกแล้ว
+- MCP client ผ่านครบสามโปรไฟล์ และตรวจ Health healthy 9/9 รายการที่ตั้งค่าไว้ ภาพและหลักฐานตรวจอยู่ใน `.axercise/learning-links-*.png` / `.axercise/learning-links-verification.json` ไม่เผยแพร่ขึ้น Git
 
 ## เมนูระบบและระดับสี UI — 23 พฤศจิกายน 2026
 

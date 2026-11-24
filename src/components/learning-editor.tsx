@@ -21,7 +21,7 @@ export function LearningEditor({ selection, state, onClose, onSaved }: { selecti
   const kind = selection.kind, str = (key: string) => String(draft[key] ?? ""), set = (key: string, value: unknown) => setDraft(d => ({ ...d, [key]: value }));
   function field(key: string, label: string, type = "text", placeholder = "", required = false) {
     const datetime = type === "datetime-local";
-    return <label className="field" key={key}><span>{label}</span><input type={type} required={required} placeholder={placeholder} maxLength={type === "text" ? 2000 : undefined} value={datetime ? localDateTime(str(key)) : type === "number" && draft[key] === null ? "" : str(key)} onChange={e => set(key, datetime ? isoDateTime(e.target.value) : type === "number" ? e.target.value === "" ? null : Number(e.target.value) : e.target.value)} step={type === "number" ? "any" : undefined} /></label>;
+    return <label className="field" key={key}><span>{label}</span><input type={type} required={required} placeholder={placeholder} maxLength={type === "url" ? 4000 : type === "text" ? 2000 : undefined} value={datetime ? localDateTime(str(key)) : type === "number" && draft[key] === null ? "" : str(key)} onChange={e => set(key, datetime ? isoDateTime(e.target.value) : type === "number" ? e.target.value === "" ? null : Number(e.target.value) : e.target.value)} step={type === "number" ? "any" : undefined} /></label>;
   }
   const area = (key: string, label: string, placeholder = "", rows = 4) => <label className="field" key={key}><span>{label}</span><textarea rows={rows} maxLength={60000} value={str(key)} placeholder={placeholder} onChange={e => set(key, e.target.value)} /></label>;
   const choose = (key: string, label: string, options: { id: string; title: string }[], empty?: string) => <label className="field"><span>{label}</span><select value={str(key)} onChange={e => set(key, e.target.value || null)}>{empty && <option value="">{empty}</option>}{options.map(o => <option key={o.id} value={o.id}>{o.title}</option>)}</select></label>;
@@ -37,7 +37,7 @@ export function LearningEditor({ selection, state, onClose, onSaved }: { selecti
   const editWeight = (index: number, key: string, value: unknown) => set("weights", weights.map((v, i) => i === index ? { ...v, [key]: value } : v));
   const assignmentFiles = state.records.documents.filter(d => d.assignmentId === draft.id).flatMap(d => d.versions.map((v, i) => ({ id: v.id, title: `${d.title} · v${i + 1} · ${v.name}` })));
   const course = state.records.courses.find(c => c.id === draft.courseId);
-  return <Modal open={!!selection} onOpenChange={open => !open && !busy && onClose()} title={`${selection.fresh ? "เพิ่ม" : "แก้ไข"}${kindNames[kind]}`} description="เก็บรายละเอียดไว้ แล้วกลับมาต่อจากจุดเดิม" className="learning-editor">
+  return <Modal open={!!selection} onOpenChange={open => !open && !busy && onClose()} title={`${selection.fresh ? "เพิ่ม" : "แก้ไข"}${kind === "documents" && (selection.fresh || selection.data.url) ? "ลิงก์เรียน" : kindNames[kind]}`} description="เก็บรายละเอียดไว้ แล้วกลับมาต่อจากจุดเดิม" className="learning-editor">
     <form className="editor-body learning-form" onSubmit={save}>
       {field("title", kind === "courses" ? "ชื่อรายวิชา" : "ชื่อ", "text", "", true)}
       {kind === "terms" && <>{field("year", "ปีการศึกษา", "text", "2569", true)}<div className="form-grid">{field("start", "วันเปิดเทอม", "date")}{field("end", "วันสิ้นสุดเทอม", "date")}</div></>}
@@ -55,6 +55,7 @@ export function LearningEditor({ selection, state, onClose, onSaved }: { selecti
         {field("target", "เป้าหมายคะแนนรวม (%) · เว้นว่างหากยังไม่กำหนด", "number")}{area("gradeRules", "เกณฑ์เกรดของวิชา", "เช่น A ตั้งแต่ 80 คะแนน หรือตามประกาศอาจารย์", 2)}
       </>}
       {kind === "documents" && <>
+        {(selection.fresh || selection.data.url) && <>{field("url", "ลิงก์ / URL", "url", "https://…", true)}<p className="learning-upload-hint">เก็บลิงก์ต้นทางไว้เปิดภายหลัง ไม่ดาวน์โหลดเนื้อหาเว็บอัตโนมัติ</p></>}
         {choose("category", "ประเภทเอกสาร", categories.map(title => ({ id: title, title })))}{field("chapter", "บท / สัปดาห์")}
         <label className="field"><span>แท็ก · คั่นด้วยเครื่องหมายจุลภาค</span><input value={((draft.tags || []) as string[]).join(", ")} onChange={e => set("tags", e.target.value.split(",").map(t => t.trim()).filter(Boolean))} /></label>
         {area("note", "บันทึกประกอบ")}

@@ -39,7 +39,7 @@ export async function saveFile(form: FormData) {
   if (!allowedFiles.has(extension)) throw new AppError("ชนิดไฟล์นี้ยังไม่รองรับ");
   const courseId = String(form.get("courseId") || ""), documentId = String(form.get("documentId") || ""), assignmentId = String(form.get("assignmentId") || "") || null;
   const state = readLearning(); record(state, "courses", courseId);
-  if (documentId) { const d = record(state, "documents", documentId); if (d.courseId !== courseId || d.archived || d.deletedAt) throw new AppError("ไม่สามารถเพิ่มเวอร์ชันให้เอกสารนี้"); }
+  if (documentId) { const d = record(state, "documents", documentId); if (d.courseId !== courseId || d.archived || d.deletedAt) throw new AppError("ไม่สามารถเพิ่มเวอร์ชันให้เอกสารนี้"); if (d.url) throw new AppError("รายการนี้เป็นลิงก์ เลือกอัปโหลดเป็นเอกสารใหม่เพื่อเก็บไฟล์ต้นฉบับ"); }
   if (assignmentId && record(state, "assignments", assignmentId).courseId !== courseId) throw new AppError("การบ้านอยู่คนละวิชา");
   const bytes = Buffer.from(await file.arrayBuffer());
   if (extension === "pdf" && !bytes.subarray(0, 1024).includes(Buffer.from("%PDF-"))) throw new AppError("เนื้อหาไฟล์ไม่ใช่ PDF ที่อ่านได้");

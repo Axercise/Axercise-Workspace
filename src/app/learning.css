@@ -1,4 +1,21 @@
 /* Learning uses the same neutral palette and motion tokens as Workspace. */
+.learning-document-card .learning-document-main small { overflow-wrap:anywhere; }
+.learning-link-open { display:inline-flex; align-items:center; gap:6px; flex:1; min-height:32px; font-size:13px; color:#dedede; }
+.learning-link-open:hover { color:#fff; text-decoration:underline; text-underline-offset:3px; }
+.modal-content.learning-link-modal { width:680px; }
+.learning-link-detail { padding:22px 25px; overflow-y:auto; min-height:0; }
+.learning-link-address { display:flex; align-items:flex-start; gap:12px; padding:16px; border:1px solid #5c5c5c; border-radius:10px; background:#181818; color:#e4e4e4; font-size:14px; line-height:1.9; }
+.learning-link-address:hover { border-color:#999; }
+.learning-link-address>span { flex:1; min-width:0; overflow-wrap:anywhere; }
+.learning-link-address>svg { margin-top:5px; }
+.learning-link-meta { display:flex; flex-wrap:wrap; gap:7px; margin:16px 0; }
+.learning-link-meta>span { display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border:1px solid #4d4d4d; border-radius:6px; color:#bbb; font-size:12px; }
+.learning-link-detail>.learning-prose { margin-bottom:18px; }
+.learning-link-detail>.learning-upload-hint { padding-top:14px; border-top:1px solid #444; margin-top:18px; }
+.learning-link-delete { display:flex; justify-content:flex-end; margin-top:18px; padding-top:14px; border-top:1px solid #444; }
+.learning-document-filters { flex-wrap:wrap; }
+.learning-document-filters .learning-search { flex:1 1 240px; }
+@media(max-width:600px) { .learning-link-detail { padding:18px; } .learning-link-address { padding:13px; font-size:13px; } }
 .learning-delete-button { color:#bebebe; }
 .learning-delete-button:hover { color:#fff; background:#ffffff10; }
 .learning-delete-confirm p { line-height:1.9; margin-bottom:14px; }
