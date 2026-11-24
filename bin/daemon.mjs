@@ -37,7 +37,7 @@ function ensureWeb() {
 }
 function reconcile() {
   if (stopping) return; ensureWeb();
-  const c = readConfig(); const next = JSON.stringify([c.defaultProvider, c.defaultModel, c.openrouterKey, c.discord]);
+  const c = readConfig(); const next = JSON.stringify([c.defaultProvider, c.defaultModel, c.openrouterKey, c.discord, c.hermesPath, c.approvalMode]);
   if (next !== fingerprint) { provision(); fingerprint = next; for (const [name, proc] of children) if (name !== "web") { terminate(proc); retry.delete(name); } }
   let hermes; try { hermes = findHermes(); } catch { return; }
   for (const agent of agents) {

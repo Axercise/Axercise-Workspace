@@ -60,8 +60,9 @@ else if (command === "login") {
   Open the link above to access your AI assistants, calendar,
   tasks, Brain Dump, and Learning. Open Learning to organize
   your courses, study files, assignments, grades, and revision.
-  On your first visit, open Settings to
-  connect your AI provider, Notion, Google Calendar, and Discord.
+  On your first visit, connect local Hermes, an AI account, and Notion.
+  Setup instructions: http://127.0.0.1:3210/docs
+  You can add Google Calendar and Discord later in Settings.
 
   Axercise runs locally on your computer. You can close the
   browser tab or this terminal without stopping the workspace.

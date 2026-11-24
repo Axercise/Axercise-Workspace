@@ -1,5 +1,7 @@
 # Axercise Workspace
 
+เริ่มใช้บนเครื่องของคุณด้วย [คู่มือสำหรับผู้ที่ clone โปรเจกต์](public/docs/setup.html) เปิดไฟล์นี้ในเบราว์เซอร์ได้ก่อนติดตั้ง หรือเข้า [Docs ใน Workspace](http://127.0.0.1:3210/docs) หลังเปิดระบบ
+
 พื้นที่ทำงานส่วนตัวบน Windows: Next.js + Hermes Agent พร้อมแชทแนบภาพ, Calendar, Eisenhower Tasks, Brain Dump และคลังการเรียน
 
 ## การพัฒนาและ Git
@@ -16,11 +18,12 @@ Repo เก็บเฉพาะ source และเอกสาร ข้อม
 
 ```powershell
 npm ci
-npm run setup:learning
 npm run build
 npm link
 axercise
 ```
+
+เครื่องใหม่จะเปิดหน้าตั้งค่าก่อน เลือก Hermes เชื่อม ChatGPT หรือ OpenRouter และสร้างฐานข้อมูล Notion แล้วกดตรวจการเชื่อมต่อ หลังเลือก Hermes แล้วให้รัน `npm run setup:learning` เพื่อติดตั้งตัวอ่านเอกสาร ส่วน Google Calendar และ Discord เปิดใช้ภายหลังได้
 
 สำหรับเครื่องที่พัฒนาโปรเจกต์นี้ มี dependencies และ production build เตรียมไว้แล้ว ใช้ `npm link` ครั้งเดียว จากนั้นใช้ `axercise` ได้จาก terminal ทั่วไป
 

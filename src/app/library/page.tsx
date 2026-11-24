@@ -1,2 +1,3 @@
+import { requireSetup } from "@/server/setup";
 import { SavedLibrary } from "@/components/saved-library";
-export default function LibraryPage() { return <SavedLibrary />; }
+export default async function LibraryPage() { await requireSetup(); return <SavedLibrary />; }

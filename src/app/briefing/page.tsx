@@ -1,2 +1,3 @@
+import { requireSetup } from "@/server/setup";
 import { DailyBriefing } from "@/components/daily-briefing";
-export default function BriefingPage() { return <DailyBriefing />; }
+export default async function BriefingPage() { await requireSetup(); return <DailyBriefing />; }

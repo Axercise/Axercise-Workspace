@@ -13,7 +13,7 @@ const code = [
   "raw = yaml.safe_load((home / 'config.yaml').read_text(encoding='utf-8'))",
   "assert 'axercise' in raw['mcp_servers'], 'Workspace tools are not configured'",
   "assert raw['terminal']['backend'] == 'local', 'Unexpected terminal backend'",
-  "assert raw['approvals']['mode'] == 'off', 'Unexpected permission mode'",
+  "assert raw['approvals']['mode'] == ('off' if os.environ['HERMES_YOLO_MODE'] == 'true' else 'manual'), 'Unexpected permission mode'",
   "print(json.dumps({'valid': True, 'api_enabled': True, 'workspace_tools': True}))",
 ].join("\n");
 for (const agent of agents) {

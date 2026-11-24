@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="th"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>คู่มือติดตั้งบน Windows · Axercise Workspace</title>
+<link rel="icon" href="data:,">
+<style>
+:root{color-scheme:dark;font:17px/1.7 "Segoe UI",Tahoma,sans-serif;background:#111113;color:#ededee}body{max-width:760px;margin:auto;padding:32px 20px 70px}h1,h2{line-height:1.35}h2{margin-top:2em}a{color:#fff;text-underline-offset:4px}p,li{color:#ccc}pre{padding:16px;background:#232326;overflow:auto;border-radius:8px}code{color:white}li{margin:.45em 0}
+</style><main>
+<a href="http://127.0.0.1:3210/setup">เปิดหน้าตั้งค่าบนเครื่องนี้ →</a>
+<h1>ติดตั้ง Axercise Workspace บน Windows</h1>
+<p>แต่ละเครื่องใช้บัญชีและโปรไฟล์ของเจ้าของเครื่องเอง การ clone ครั้งแรกจะได้พื้นที่ว่างสำหรับแชท ไฟล์เรียน และคลังบันทึก</p>
+<h2>1. เปิด Workspace ครั้งแรก</h2>
+<p>ติดตั้ง Git, Node.js 22.13 ขึ้นไป และ <a href="https://hermes-agent.nousresearch.com/docs/getting-started/installation">Hermes Agent สำหรับ Windows</a> เลือกการติดตั้งแบบ source ที่มีโฟลเดอร์ <code>hermes_cli</code> และ Python ใน <code>venv/Scripts</code> หรือ <code>.venv/Scripts</code> รุ่นที่ใช้ต้องมี Gateway API สำหรับ sessions และรองรับ MCP</p>
+<pre><code>git clone https://github.com/Axercise/Axercise-Workspace.git
+cd Axercise-Workspace
+npm ci
+npm run build
+npm link
+axercise</code></pre>
+<p>ระหว่างที่ฟีเจอร์นี้อยู่บน branch ทดสอบ ให้ใช้ <code>git switch test</code> หลังเข้าโฟลเดอร์และก่อนติดตั้ง เว็บเปิดที่ <a href="http://127.0.0.1:3210/">127.0.0.1:3210</a> ถ้า Windows ไม่พบคำสั่ง axercise ให้ใช้ <code>npm run axercise</code> จากโฟลเดอร์โปรเจกต์</p>
+<h2>2. เชื่อม Hermes และบัญชี AI</h2>
+<ol><li>หน้าตั้งค่าจะค้นหา Hermes ในเครื่อง ถ้าติดตั้งไว้ที่อื่นให้ใส่ตำแหน่งโฟลเดอร์ hermes-agent เลือกสิทธิ์ในการรันคำสั่ง แล้วกด <b>ตรวจหาและเชื่อม Hermes</b></li>
+<li>กด <b>เชื่อม AI</b> แล้วเลือกหนึ่งวิธี<ul><li><b>ChatGPT</b> กด “เข้าสู่ระบบผ่าน Hermes” ในหน้าต่างที่เปิดให้เลือก ChatGPT or Codex Subscription และยืนยันในเบราว์เซอร์ ใช้บัญชีเดียวกันได้สำหรับทั้งสามโปรไฟล์ ระหว่างล็อกอิน Workspace จะหยุดชั่วคราวและเปิดอีกครั้งเมื่อเสร็จ ถ้าปิดหน้าต่างกลางคัน ให้รัน <code>axercise login</code> แล้ว <code>axercise</code></li>
+<li><b>OpenRouter</b> เลือก OpenRouter ใส่ API key และชื่อโมเดลที่บัญชีใช้ได้ เช่น <code>openrouter/free</code> แล้วกดบันทึก</li></ul></li></ol>
+<h2>3. เชื่อม Notion แล้วเข้าใช้งาน</h2>
+<ol><li>สร้าง <a href="https://www.notion.so/profile/integrations">Notion Internal Integration</a> ใน Workspace ของคุณ เปิดสิทธิ์อ่าน เพิ่ม และแก้ไขเนื้อหา</li>
+<li>สร้างหน้า Axercise ใน Notion เปิดเมนู ••• → Connections แล้วเพิ่ม Integration ให้กับหน้านั้น คัดลอกลิงก์หน้าด้วย Copy link</li>
+<li>กด <b>เชื่อม Notion</b> ใน Axercise ใส่ Integration Token และลิงก์ กดบันทึก แล้วกด <b>สร้างฐานข้อมูลใหม่</b> รอ Tasks และ Brain Dump ขึ้นว่าพร้อม</li>
+<li>ปิดหน้าต่างตั้งค่า กด <b>ตรวจการเชื่อมต่อและเข้า Workspace</b> หาก Gateway เพิ่งเริ่ม ให้รอสักครู่แล้วลองอีกครั้ง ถ้า Notion แจ้งสิทธิ์ไม่พอให้ตรวจ Connections ของหน้าที่คัดลอกมา</li></ol>
+<p>ลองพิมพ์ในแชท “เพิ่มงานอ่านบทที่ 1 ไว้ใน To-do” แล้วเปิด To-do เพื่อตรวจรายการ Hermes ได้รับเครื่องมือของ Axercise ผ่าน Workspace MCP อัตโนมัติ เก็บ token ในหน้าตั้งค่าเท่านั้น</p>
+<h2>4. เพิ่มบริการเมื่อพร้อม</h2>
+<ul><li><b>Google Calendar</b> เปิด Google Calendar API ใน Google Cloud สร้าง OAuth Client ชนิด Web application เพิ่ม redirect URI <code>http://127.0.0.1:3210/api/calendar/callback</code> และเพิ่ม Test user หากอยู่ในโหมด Testing ใส่ Client ID และ Secret ที่ ตั้งค่า → Calendar กดบันทึก แล้วกดเชื่อมบัญชี Google</li>
+<li><b>Discord</b> สร้างบอทของตัวเองสำหรับแต่ละ Agent เปิด Message Content Intent เชิญบอทเข้าเซิร์ฟเวอร์ อนุญาตให้อ่านและส่งข้อความ ใส่ Bot token และ User ID ของเจ้าของใน ตั้งค่า → Discord ถ้าต้องการให้ Secretary เตือน ให้เพิ่ม Channel ID ของห้องและเปิดสิทธิ์ Add Reactions</li>
+<li><b>เอกสารเรียน</b> หลังเชื่อม Hermes รัน <code>npm run setup:learning</code> ในโฟลเดอร์โปรเจกต์เพื่อติดตั้งตัวอ่านข้อความ</li></ul>
+<p>กลับมาจัดการได้จาก ☰ → ตั้งค่า → Workspace ข้อมูลส่วนตัวอยู่ใน <code>.axercise/</code> ของเครื่องที่ใช้งาน ปิดแท็บได้เมื่อใช้คำสั่ง axercise บอทและการแจ้งเตือนบนเครื่องทำงานขณะที่คอมเปิดอยู่ ใช้ <code>axercise stop</code> เพื่อหยุด</p>
+</main></html>

@@ -6,7 +6,7 @@ import { AGENTS, type AgentId, type PublicSettings } from "../lib/types";
 export const ROOT = process.env.AXERCISE_ROOT || process.cwd();
 export const DATA = process.env.AXERCISE_DATA_DIR || path.join(ROOT, ".axercise");
 export type Config = {
-  version: 1; serviceToken: string; gatewayKeys: Record<AgentId, string>;
+  version: 1; setupComplete?: boolean; approvalMode?: "manual" | "off"; hermesPath?: string; serviceToken: string; gatewayKeys: Record<AgentId, string>;
   timezone: string; defaultProvider: string; defaultModel: string; openrouterKey: string;
   notion: { token: string; parentPageId: string; tasksId: string; notesId: string; learningId?: string };
   google: { clientId: string; clientSecret: string; refreshToken: string; accessToken: string; expiresAt: number; calendarId: string };
@@ -23,7 +23,7 @@ export function config(): Config {
   const file = path.join(DATA, "config.json");
   if (fs.existsSync(file)) return JSON.parse(fs.readFileSync(file, "utf8"));
   const value: Config = {
-    version: 1, serviceToken: randomBytes(32).toString("hex"),
+    version: 1, setupComplete: false, approvalMode: "manual", serviceToken: randomBytes(32).toString("hex"),
     gatewayKeys: Object.fromEntries(AGENTS.map(a => [a.id, randomBytes(32).toString("hex")])) as Record<AgentId, string>,
     timezone: "Asia/Bangkok", defaultProvider: "openrouter", defaultModel: "openrouter/free", openrouterKey: "",
     notion: { token: "", parentPageId: "", tasksId: "", notesId: "" },
