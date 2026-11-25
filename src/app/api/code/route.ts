@@ -1,13 +1,12 @@
 import { z } from "zod";
 import { AppError, body, fail, localRequest } from "@/server/http";
-import { checkpoint, chooseProject, codeFileLimit, codeVersions, createCodeEntry, listCodeEntries, openProject, projectById, projects, readCodeFile, readCodeVersion, saveCodeFile } from "@/server/code-project";
+import { browseCodeFolders, checkpoint, codeFileLimit, codeVersions, createCodeEntry, listCodeEntries, openProject, projectById, projects, readCodeFile, readCodeVersion, saveCodeFile } from "@/server/code-project";
 import { proposeCode } from "@/server/code-ai";
 
 const response = (value: unknown) => Response.json(value, { headers: { "Cache-Control": "no-store" } });
 const file = { project: z.uuid(), path: z.string().min(1).max(1024) };
 const actions = z.discriminatedUnion("action", [
   z.object({ action: z.literal("open"), directory: z.string().min(1).max(1024) }),
-  z.object({ action: z.literal("choose") }),
   z.object({ action: z.literal("create"), ...file, kind: z.enum(["file", "folder"]) }),
   z.object({ action: z.literal("save"), ...file, content: z.string().max(codeFileLimit), revision: z.string().regex(/^[a-f0-9]{64}$/) }),
   z.object({ action: z.literal("checkpoint"), ...file }),
@@ -21,6 +20,7 @@ export async function GET(req: Request) {
     const query = new URL(req.url).searchParams;
     const action = query.get("action");
     if (action === "projects") return response(projects());
+    if (action === "folders") return response(browseCodeFolders(z.string().max(1024).optional().parse(query.get("directory") || undefined)));
     const project = projectById(z.uuid().parse(query.get("project")));
     const relative = z.string().max(1024).parse(query.get("path") ?? "");
     if (action === "list") return response(listCodeEntries(project, relative));
@@ -37,7 +37,6 @@ export async function POST(req: Request) {
     localRequest(req);
     const input = actions.parse(await body(req, 7_000_000));
     if (input.action === "open") return response(openProject(input.directory));
-    if (input.action === "choose") return response(await chooseProject());
     const project = projectById(input.project);
     if (input.action === "save") return response(saveCodeFile(project, input.path, input.content, input.revision));
     if (input.action === "create") createCodeEntry(project, input.path, input.kind);

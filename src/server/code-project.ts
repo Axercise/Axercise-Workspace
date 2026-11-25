@@ -1,11 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
+import { homedir } from "node:os";
 import { createHash, randomUUID } from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { AppError } from "./http";
 import { DATA, atomicJSON } from "./store";
-import type { CodeEntry, CodeFile, CodeProject, CodeVersion } from "../lib/code-project";
+import type { CodeEntry, CodeFile, CodeFolderListing, CodeProject, CodeVersion } from "../lib/code-project";
 
 const run = promisify(execFile);
 const storage = path.join(DATA, "code");
@@ -30,19 +31,21 @@ export function projects(): CodeProject[] {
   return fs.existsSync(registry) ? JSON.parse(fs.readFileSync(registry, "utf8")) : [];
 }
 
-function rootDirectory(directory: string) {
+function rootDirectory(directory: string, browse = false) {
   if (!path.isAbsolute(directory) || (process.platform === "win32" && !/^[a-z]:[\\/]/i.test(directory))) throw new AppError("ระบุตำแหน่งโฟลเดอร์บนเครื่องให้ครบ");
   let resolved: string;
   try { resolved = fs.realpathSync(directory); } catch { throw new AppError("ไม่พบโฟลเดอร์นี้", 404); }
-  if (!fs.statSync(resolved).isDirectory() || resolved === path.parse(resolved).root || within(DATA, resolved)
-    || resolved.slice(path.parse(resolved).root.length).split(path.sep).some(name => !allowedName(name))) {
+  const suffix = resolved.slice(path.parse(resolved).root.length);
+  if (!fs.statSync(resolved).isDirectory() || (!browse && !suffix) || within(DATA, resolved)
+    || (suffix && suffix.split(path.sep).some(name => !allowedName(name)))) {
     throw new AppError("เลือกโฟลเดอร์โปรเจกต์ที่ต้องการเปิด");
   }
   return resolved;
 }
 
 export function openProject(directory: string) {
-  const resolved = rootDirectory(directory);
+  // Explorer's "Copy as path" surrounds a folder with double quotes.
+  const resolved = rootDirectory(directory.trim().replace(/^"([^"]+)"$/, "$1"));
   const existing = projects();
   const match = existing.find(item => path.relative(item.directory, resolved) === "");
   const project = match ?? { id: randomUUID(), directory: resolved, name: path.basename(resolved) };
@@ -50,22 +53,24 @@ export function openProject(directory: string) {
   return project;
 }
 
-export async function chooseProject() {
-  if (process.platform !== "win32") throw new AppError("ระบุตำแหน่งโฟลเดอร์ในช่องด้านบน");
-  const script = [
-    "$ErrorActionPreference='Stop'",
-    "[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)",
-    "Add-Type -AssemblyName System.Windows.Forms",
-    "$dialog = [System.Windows.Forms.FolderBrowserDialog]::new()",
-    "$dialog.Description = 'Select a project folder for Axercise'",
-    "$dialog.ShowNewFolderButton = $false",
-    "$owner = [System.Windows.Forms.Form]::new()",
-    "$owner.TopMost = $true",
-    "try { if ($dialog.ShowDialog($owner) -eq 'OK') { [Console]::WriteLine($dialog.SelectedPath) } } finally { $dialog.Dispose(); $owner.Dispose() }",
-  ].join("\n");
-  const result = await run("powershell.exe", ["-NoProfile", "-STA", "-NonInteractive", "-EncodedCommand", Buffer.from(script, "utf16le").toString("base64")], { timeout: 180000, windowsHide: true });
-  const selected = result.stdout.replace(/\r?\n$/, "");
-  return selected ? openProject(selected) : null;
+export function browseCodeFolders(directory = homedir()): CodeFolderListing {
+  const current = rootDirectory(directory.trim().replace(/^"([^"]+)"$/, "$1"), true);
+  const selectable = current !== path.parse(current).root;
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(current, { withFileTypes: true });
+  } catch {
+    throw new AppError("อ่านรายการโฟลเดอร์นี้ไม่ได้ ลองเลือกตำแหน่งอื่น", 403);
+  }
+  return {
+    directory: current,
+    parent: selectable ? path.dirname(current) : null,
+    selectable,
+    folders: entries
+      .filter(entry => entry.isDirectory() && allowedName(entry.name) && !within(DATA, path.join(current, entry.name)))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+      .map(entry => ({ name: entry.name, directory: path.join(current, entry.name) })),
+  };
 }
 
 export function projectById(id: string) {

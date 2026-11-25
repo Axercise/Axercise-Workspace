@@ -46,11 +46,12 @@ type Props = {
   tasks: Task[];
   tasksError: string;
   revision: number;
+  onCalendarSettings: () => void;
   onEvent: (event?: CalendarEvent) => void;
   onTask: (task?: Task) => void;
 };
 
-export function CalendarOverview({ open, onClose, day, onDay, calendarId, tasks, tasksError, revision, onEvent, onTask }: Props) {
+export function CalendarOverview({ open, onClose, day, onDay, calendarId, tasks, tasksError, revision, onCalendarSettings, onEvent, onTask }: Props) {
   const [view, setView] = useState<CalendarView>("month");
   const [attempt, setAttempt] = useState(0);
   const [response, setResponse] = useState<{ key: string; events: CalendarEvent[]; error?: string }>();
@@ -124,6 +125,7 @@ export function CalendarOverview({ open, onClose, day, onDay, calendarId, tasks,
         {(!calendarId || current?.error || tasksError) && <div className="cal-source-notice" role="status">
           {!calendarId && <p>เชื่อม Google Calendar ในตั้งค่าเพื่อแสดงนัดหมาย</p>}
           {current?.error && <p>โหลดนัดหมายไม่สำเร็จ · {current.error}</p>}
+          {(!calendarId || current?.error) && <button className="text-link" onClick={onCalendarSettings}>ตั้งค่า Google Calendar ↗</button>}
           {tasksError && <p>โหลด To-do ไม่สำเร็จ · {tasksError}</p>}
         </div>}
         {view === "year" ? <div className="cal-year">

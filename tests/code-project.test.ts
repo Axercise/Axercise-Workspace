@@ -9,7 +9,7 @@ test("writes to the selected local project, keeps versions, and rejects stale sa
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "axercise-code-test-"));
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
   process.env.AXERCISE_DATA_DIR = path.join(home, "data");
-  const { openProject, listCodeEntries, createCodeEntry, readCodeFile, saveCodeFile, checkpoint, codeVersions, readCodeVersion } = await import("../src/server/code-project");
+  const { browseCodeFolders, openProject, listCodeEntries, createCodeEntry, readCodeFile, saveCodeFile, checkpoint, codeVersions, readCodeVersion } = await import("../src/server/code-project");
   const dir = path.join(home, "โปรเจกต์ with spaces");
   const external = path.join(home, "external");
   fs.mkdirSync(dir);
@@ -18,11 +18,14 @@ test("writes to the selected local project, keeps versions, and rejects stale sa
   fs.writeFileSync(path.join(dir, ".env"), "fixture-only");
   fs.symlinkSync(external, path.join(dir, "junction"), process.platform === "win32" ? "junction" : "dir");
   const project = openProject(dir);
-  assert.equal(openProject(dir).id, project.id);
+  assert.equal(openProject(`  "${dir}"  `).id, project.id);
   assert.throws(() => readCodeFile(project, "../external/outside.txt"));
   assert.throws(() => readCodeFile(project, "junction/outside.txt"));
   assert.throws(() => readCodeFile(project, ".env"));
   createCodeEntry(project, "src", "folder");
+  assert.deepEqual(browseCodeFolders(dir).folders, [{ name: "src", directory: path.join(dir, "src") }]);
+  assert.equal(browseCodeFolders(path.join(dir, "src")).parent, dir);
+  assert.equal(browseCodeFolders(path.parse(dir).root).selectable, false);
   createCodeEntry(project, "src/demo.ts", "file");
   assert.deepEqual(listCodeEntries(project, "").map(entry => entry.path), ["src"]);
   assert.throws(() => createCodeEntry(project, "src/demo.ts", "file"));

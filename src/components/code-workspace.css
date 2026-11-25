@@ -10,6 +10,17 @@
 .code-picker .field { flex: 1 1 260px; max-width: 680px; }
 .code-picker .code-recent { max-width: 850px; margin-top: 12px; }
 .code-picker [role="status"]:not(:empty) { color: #ffd9d9; margin-top: 10px; }
+body .code-folder-dialog { width: 620px; }
+.code-folder-body { padding: 16px 22px; min-height: 0; overflow-y: auto; }
+.code-folder-address, .code-folder-nav { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 12px; }
+.code-folder-address .field { flex: 1; min-width: 0; }
+.code-folder-list { max-height: 36vh; overflow-y: auto; display: grid; gap: 4px; }
+.code-folder-list button { display: flex; align-items: center; gap: 9px; padding: 8px; text-align: left; border-radius: 5px; }
+.code-folder-list button:hover { background: #414141; }
+.code-folder-list button span { flex: 1; overflow-wrap: anywhere; }
+.code-folder-list svg { flex-shrink: 0; }
+.code-folder-selected { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: #ccc; }
+.code-folder-body [role="alert"] { color: #ffd4d4; padding-block: 8px; }
 .code-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: clamp(208px, 22vw, 320px) minmax(0, 1fr); }
 .code-explorer, .code-main { min-height: 0; min-width: 0; display: flex; flex-direction: column; }
 .code-explorer { background: #202020; border-right: 1px solid #4d4d4d; }

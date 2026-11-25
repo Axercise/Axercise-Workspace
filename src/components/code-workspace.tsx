@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, ChevronRight, Code2, FileCode2, FilePlus2, Folder, FolderOpen, FolderPlus, GitCompareArrows, Loader2, Save, Sparkles, X } from "lucide-react";
+import { ArrowUp, ChevronDown, ChevronRight, Code2, FileCode2, FilePlus2, Folder, FolderOpen, FolderPlus, GitCompareArrows, Loader2, Save, Sparkles, X } from "lucide-react";
 import { api } from "@/lib/client";
-import type { CodeEntry, CodeFile, CodeProject, CodeVersion } from "@/lib/code-project";
+import type { CodeEntry, CodeFile, CodeFolderListing, CodeProject, CodeVersion } from "@/lib/code-project";
 import { AppMenu, WorkspaceBack } from "./app-menu";
 import { CodeEditor } from "./code-editor";
 import { Button } from "./ui/button";
+import { Modal } from "./ui/dialog";
 import "./code-workspace.css";
 
 const endpoint = "/api/code";
@@ -30,6 +31,12 @@ export function CodeWorkspace() {
   const [project, setProject] = useState<CodeProject>();
   const [directory, setDirectory] = useState("");
   const [choosing, setChoosing] = useState(false);
+  const directoryInput = useRef<HTMLInputElement>(null);
+  const [browseOpen, setBrowseOpen] = useState(false);
+  const [browseBusy, setBrowseBusy] = useState(false);
+  const [listing, setListing] = useState<CodeFolderListing>();
+  const [browsePath, setBrowsePath] = useState("");
+  const [browseError, setBrowseError] = useState("");
   const [pickerOpen, setPickerOpen] = useState(true);
   const [message, setMessage] = useState("");
   const [hasDrafts, setHasDrafts] = useState(false);
@@ -40,38 +47,72 @@ export function CodeWorkspace() {
     get<CodeProject[]>("projects").then(setRecent).catch(error => setMessage(error.message));
   }, []);
 
-  async function openFolder(pick: boolean) {
+  async function browse(target?: string) {
+    setBrowseBusy(true);
+    setBrowseError("");
+    try {
+      const query = new URLSearchParams({ action: "folders" });
+      if (target) query.set("directory", target);
+      const result = await api<CodeFolderListing>(endpoint + "?" + query);
+      setListing(result);
+      setBrowsePath(result.directory);
+    } catch (error) { setBrowseError((error as Error).message); }
+    finally { setBrowseBusy(false); }
+  }
+
+  async function openFolder(target: string) {
     setChoosing(true);
     setMessage("");
+    setBrowseError("");
     try {
-      const next = await post<CodeProject | null>(pick ? { action: "choose" } : { action: "open", directory: directory.trim() });
-      if (next) {
-        if (next.id !== project?.id && currentDrafts.current && !confirm("เปลี่ยนโปรเจกต์และละทิ้งการแก้ไขที่ยังไม่เซฟ?")) return;
-        setRecent(items => [next, ...items.filter(item => item.id !== next.id)].slice(0, 30));
-        setProject(next);
-        setDirectory(next.directory);
-        setPickerOpen(false);
-      }
-    } catch (error) { setMessage((error as Error).message); }
+      const next = await post<CodeProject>({ action: "open", directory: target });
+      if (next.id !== project?.id && currentDrafts.current && !confirm("เปลี่ยนโปรเจกต์และละทิ้งการแก้ไขที่ยังไม่เซฟ?")) return;
+      setRecent(items => [next, ...items.filter(item => item.id !== next.id)].slice(0, 30));
+      setProject(next);
+      setDirectory(next.directory);
+      setPickerOpen(false);
+      setBrowseOpen(false);
+    } catch (error) { (browseOpen ? setBrowseError : setMessage)((error as Error).message); }
     finally { setChoosing(false); }
   }
 
   return <main className="code-workspace">
     <header className="code-header">
       <div><WorkspaceBack disabled={hasDrafts} /><h1><Code2 size={24} />Code</h1></div>
-      <div><Button variant="secondary" size="sm" aria-expanded={pickerOpen} onClick={() => setPickerOpen(value => !value)}><FolderOpen size={16} />{project ? "เปลี่ยนโปรเจกต์" : "เปิดโปรเจกต์"}</Button><AppMenu current="code" compact disabled={hasDrafts} /></div>
+      <div>{project && <Button variant="secondary" size="sm" aria-expanded={pickerOpen} disabled={choosing} onClick={() => {
+        setPickerOpen(!pickerOpen);
+        if (!pickerOpen) requestAnimationFrame(() => directoryInput.current?.focus());
+      }}><FolderOpen size={16} />เปลี่ยนโปรเจกต์</Button>}<AppMenu current="code" compact disabled={hasDrafts} /></div>
     </header>
     {pickerOpen && <section className="code-picker" aria-label="เปิดโปรเจกต์บนเครื่อง">
-      <form onSubmit={event => { event.preventDefault(); void openFolder(false); }}>
-        <label className="field"><span>ตำแหน่งโฟลเดอร์โปรเจกต์</span><input value={directory} onChange={event => setDirectory(event.target.value)} placeholder="C:\Projects\my-app" /></label>
-        <Button type="submit" disabled={choosing || !directory.trim()}>เปิด</Button>
-        <Button type="button" variant="secondary" disabled={choosing} onClick={() => void openFolder(true)}>{choosing ? <Loader2 size={16} className="spin" /> : <FolderOpen size={16} />}เลือกโฟลเดอร์</Button>
+      <form onSubmit={event => { event.preventDefault(); void openFolder(directory); }}>
+        <label className="field"><span>ตำแหน่งโฟลเดอร์โปรเจกต์</span><input ref={directoryInput} value={directory} onChange={event => setDirectory(event.target.value)} placeholder="C:\Projects\my-app" /></label>
+        <Button type="submit" disabled={choosing || !directory.trim()}>เปิดโปรเจกต์</Button>
+        <Button type="button" variant="secondary" disabled={choosing} onClick={() => { setBrowsePath(directory); setBrowseOpen(true); void browse(directory.trim() || undefined); }}><FolderOpen size={16} />เลือกโฟลเดอร์</Button>
       </form>
       {recent.length > 0 && <label className="field code-recent"><span>โปรเจกต์ล่าสุด</span><select value={recent.some(item => item.directory === directory) ? directory : ""} onChange={event => setDirectory(event.target.value)}>
         <option value="">เลือกโปรเจกต์</option>{recent.map(item => <option key={item.id} value={item.directory}>{item.name} · {item.directory}</option>)}
       </select></label>}
       <p role="status">{message}</p>
     </section>}
+    <Modal open={browseOpen} onOpenChange={value => { if (!choosing) setBrowseOpen(value); }} title="เลือกโฟลเดอร์โปรเจกต์" className="code-folder-dialog">
+      <div className="code-folder-body">
+        <form className="code-folder-address" onSubmit={event => { event.preventDefault(); void browse(browsePath.trim() || undefined); }}>
+          <label className="field"><span>ตำแหน่งที่ต้องการเปิด</span><input value={browsePath} placeholder="C:\Projects" onChange={event => setBrowsePath(event.target.value)} /></label>
+          <Button variant="secondary" type="submit" disabled={browseBusy || choosing}>ไปที่</Button>
+        </form>
+        <div className="code-folder-nav">
+          <Button variant="secondary" size="sm" disabled={browseBusy || choosing || !listing?.parent} onClick={() => void browse(listing?.parent ?? undefined)}><ArrowUp size={15} />ขึ้นหนึ่งระดับ</Button>
+          <Button variant="ghost" size="sm" disabled={browseBusy || choosing} onClick={() => void browse()}>โฟลเดอร์ผู้ใช้</Button>
+        </div>
+        {browseError && <p role="alert">{browseError}</p>}
+        {browseBusy ? <p role="status">กำลังอ่านโฟลเดอร์…</p> : <div className="code-folder-list" aria-label="รายการโฟลเดอร์">
+          {listing?.folders.map(item => <button type="button" key={item.directory} onClick={() => void browse(item.directory)} disabled={choosing}><Folder size={16} /><span>{item.name}</span><ChevronRight size={15} /></button>)}
+          {listing && !listing.folders.length && <p>ไม่มีโฟลเดอร์ย่อย</p>}
+        </div>}
+      </div>
+      <div className="modal-footer"><span className="code-folder-selected" title={listing?.directory}>{listing?.directory}</span><Button disabled={browseBusy || choosing || !!browseError || !listing?.selectable} onClick={() => { if (listing) void openFolder(listing.directory); }}>ใช้โฟลเดอร์นี้</Button></div>
+    </Modal>
     {project ? <ProjectEditor key={project.id} project={project} onEditState={setHasDrafts} /> : <div className="code-empty"><FolderOpen size={34} /><p>เลือกโฟลเดอร์เพื่อเปิดไฟล์ในโปรเจกต์</p></div>}
   </main>;
 }
@@ -81,6 +122,7 @@ function ProjectEditor({ project, onEditState }: { project: CodeProject; onEditS
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [folder, setFolder] = useState("");
   const [tabs, setTabs] = useState<Tab[]>([]);
+  const liveDrafts = useRef(new Map<string, string>());
   const [selected, setSelected] = useState("");
   const [history, setHistory] = useState<{ path: string; items: CodeVersion[] }>();
   const [diff, setComparison] = useState<Comparison>();
@@ -138,15 +180,18 @@ function ProjectEditor({ project, onEditState }: { project: CodeProject; onEditS
   function closeFile(file: Tab) {
     if (dirty(file) && !confirm("ปิดแท็บและละทิ้งการแก้ไขที่ยังไม่เซฟ?")) return;
     const rest = tabs.filter(item => item.path !== file.path);
+    liveDrafts.current.delete(file.path);
     setTabs(rest);
     if (selected === file.path) select(rest.at(-1)?.path ?? "");
   }
 
   async function save() {
-    if (!tab || !dirty(tab) || saving || suggested) return;
+    if (!tab || saving || suggested) return;
+    const draft = liveDrafts.current.get(tab.path) ?? tab.draft;
+    if (draft === tab.content) return;
     setSaving(true);
     await run(async () => {
-      const file = await post<CodeFile>({ action: "save", project: project.id, path: tab.path, revision: tab.revision, content: tab.draft });
+      const file = await post<CodeFile>({ action: "save", project: project.id, path: tab.path, revision: tab.revision, content: draft });
       setTabs(items => items.map(item => item.path === file.path ? { ...item, ...file } : item));
       setMessage("บันทึก " + nameOf(file.path) + " ลงดิสก์แล้ว");
       if (!comparison) setHistory(undefined);
@@ -197,6 +242,7 @@ function ProjectEditor({ project, onEditState }: { project: CodeProject; onEditS
   }
 
   function updateDraft(file: string, draft: string) {
+    liveDrafts.current.set(file, draft);
     setTabs(items => items.map(item => item.path === file ? { ...item, draft } : item));
   }
 
