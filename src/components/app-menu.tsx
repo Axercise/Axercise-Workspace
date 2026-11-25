@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { DropdownMenu } from "radix-ui";
-import { ArrowLeft, ArrowUpRight, BookOpen, Bookmark, Brain, CalendarDays, Check, ChevronUp, LayoutDashboard, ListTodo, Menu, Settings2, Sunrise } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, BookOpen, Bookmark, Brain, CalendarDays, Check, ChevronUp, Code2, LayoutDashboard, ListTodo, Menu, Settings2, Sunrise } from "lucide-react";
 import { api } from "@/lib/client";
 import type { BriefingFeed } from "@/lib/briefings";
 
@@ -12,6 +12,7 @@ const systems = [
   { id: "briefing", href: "/briefing", label: "Daily Briefing", description: "สรุปวันนี้และเตรียมพร้อมพรุ่งนี้", icon: Sunrise },
   { id: "learning", href: "/learning", label: "การเรียน", description: "รายวิชา เอกสาร และการบ้าน", icon: BookOpen },
   { id: "library", href: "/library", label: "คลังบันทึก", description: "ลิงก์ รูปภาพ และสิ่งที่เก็บไว้", icon: Bookmark },
+  { id: "code", href: "/code", label: "Code", description: "เปิดโปรเจกต์ แก้ไฟล์ และดู Diff", icon: Code2 },
 ] as const;
 type SystemId = typeof systems[number]["id"];
 type QuickPanel = "brain" | "tasks" | "calendar" | "settings";

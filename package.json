@@ -21,6 +21,7 @@
     "clsx": "2.1.1",
     "fflate": "0.8.3",
     "lucide-react": "0.577.0",
+    "monaco-editor": "0.58.0",
     "next": "16.4.5",
     "node-notifier": "12.1.0",
     "radix-ui": "1.6.7",
