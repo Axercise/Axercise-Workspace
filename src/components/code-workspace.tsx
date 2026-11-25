@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { ArrowUp, ChevronDown, ChevronRight, Code2, FileCode2, FilePlus2, Folder, FolderOpen, FolderPlus, GitCompareArrows, Loader2, Save, Sparkles, Terminal, X } from "lucide-react";
 import { api } from "@/lib/client";
 import type { CodeEntry, CodeFile, CodeFolderListing, CodeProject, CodeVersion } from "@/lib/code-project";
 import { AppMenu, WorkspaceBack } from "./app-menu";
 import { CodeEditor } from "./code-editor";
-import { CodeTerminal } from "./code-terminal";
+import { TerminalDock } from "./terminal-dock";
+import { CodeResizeHandle, useCodePanelSize } from "./code-resize";
 import { Button } from "./ui/button";
 import { Modal } from "./ui/dialog";
 import "./code-workspace.css";
@@ -119,6 +120,9 @@ export function CodeWorkspace() {
 }
 
 function ProjectEditor({ project, onEditState }: { project: CodeProject; onEditState: (open: boolean) => void }) {
+  const layout = useRef<HTMLDivElement>(null);
+  const explorer = useRef<HTMLElement>(null);
+  const [explorerWidth, setExplorerWidth] = useCodePanelSize("axercise-code-explorer-width-v1");
   const [terminalPanel, setTerminalPanel] = useState<"closed" | "visible" | "hidden">("closed");
   const [tree, setTree] = useState<Record<string, CodeEntry[]>>({});
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -270,8 +274,8 @@ function ProjectEditor({ project, onEditState }: { project: CodeProject; onEditS
     </div>);
   }
 
-  return <div className="code-layout">
-    <aside className="code-explorer" aria-label="ไฟล์โปรเจกต์">
+  return <div className="code-layout" ref={layout} style={explorerWidth === undefined ? undefined : { "--code-explorer-width": `${explorerWidth}px` } as CSSProperties}>
+    <aside className="code-explorer" ref={explorer} aria-label="ไฟล์โปรเจกต์">
       <div className="code-explorer-head">
         <button className="code-project-name" onClick={() => setFolder("")} title={project.directory}><FolderOpen size={18} /><strong>{project.name}</strong></button>
         <button className="icon-button" aria-label="สร้างไฟล์" title="สร้างไฟล์" onClick={() => setCreating("file")}><FilePlus2 size={16} /></button>
@@ -286,6 +290,10 @@ function ProjectEditor({ project, onEditState }: { project: CodeProject; onEditS
       <div className="code-tree">{rows("", 0)}</div>
       <Button variant="ghost" size="sm" onClick={() => void run(async () => { await Promise.all(["", ...expanded].map(loadFolder)); })}>โหลดรายการไฟล์ใหม่</Button>
     </aside>
+    <CodeResizeHandle label="ปรับความกว้างโฟลเดอร์" axis="width"
+      measure={() => explorer.current?.getBoundingClientRect().width || 260}
+      bounds={() => ({ min: 110, max: Math.max(110, Math.min(650, (layout.current?.clientWidth || window.innerWidth) - 320)) })}
+      onChange={setExplorerWidth} />
     <section className="code-main" aria-label="ตัวแก้โค้ด">
       <div className="code-project-actions"><Button variant="secondary" size="sm" aria-expanded={terminalPanel === "visible"} onClick={() => setTerminalPanel(value => value === "visible" ? "hidden" : "visible")}><Terminal size={16} />Terminal</Button></div>
       {tabs.length > 0 && <div className="code-tabs" role="group" aria-label="ไฟล์ที่เปิด">
@@ -333,7 +341,7 @@ function ProjectEditor({ project, onEditState }: { project: CodeProject; onEditS
         {(suggested || comparison) && <div className="code-diff-labels"><span>{suggested ? "ก่อนแก้" : comparison?.title}</span><span>{suggested ? "ข้อเสนอจาก Developer" : "โค้ดปัจจุบัน"}</span></div>}
         <CodeEditor key={tab.path} path={tab.path} value={suggested?.content ?? tab.draft} original={suggested?.before ?? comparison?.original} readOnly={!!suggested} onChange={value => { if (!suggested) updateDraft(tab.path, value); }} />
       </> : <div className="code-empty"><FileCode2 size={34} /><p>{selected ? "กำลังเปิดไฟล์ หรือไฟล์นี้เปิดไม่ได้" : "เลือกไฟล์จากรายการทางซ้าย"}</p></div>}
-      {terminalPanel !== "closed" && <CodeTerminal project={project.id} hidden={terminalPanel === "hidden"} onClose={() => setTerminalPanel("closed")} />}
+      {terminalPanel !== "closed" && <TerminalDock project={project.id} hidden={terminalPanel === "hidden"} onClose={() => setTerminalPanel("closed")} />}
       <div className="code-status" role="status">{message || (unsaved ? "มีไฟล์ที่ยังไม่เซฟ" : project.directory)}</div>
     </section>
   </div>;

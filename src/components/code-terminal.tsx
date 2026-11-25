@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Terminal } from "@xterm/xterm";
-import { Maximize2, Minimize2, Terminal as TerminalIcon, X } from "lucide-react";
+import { Terminal as TerminalIcon, X } from "lucide-react";
 import { api, consumeSSE } from "@/lib/client";
 import { Button } from "./ui/button";
 import "@xterm/xterm/css/xterm.css";
@@ -27,12 +27,12 @@ function endConnection(project: string, current: Connection) {
   }).catch(() => {});
 }
 
-export function CodeTerminal({ project, hidden, onClose }: { project: string; hidden: boolean; onClose: () => void }) {
+export function CodeTerminal({ project, label, ownerWindow, onClose }: { project: string; label: string; ownerWindow?: Window; onClose: () => void }) {
   const host = useRef<HTMLDivElement>(null);
   const emulator = useRef<Terminal | null>(null);
   const connection = useRef<Connection | null>(null);
   const mounted = useRef(false);
-  const [expanded, setExpanded] = useState(false);
+  const fitTerminal = useRef<() => void>(() => {});
   const [phase, setPhase] = useState<"loading" | "idle" | "starting" | "running">("loading");
   const [message, setMessage] = useState("");
 
@@ -51,6 +51,11 @@ export function CodeTerminal({ project, hidden, onClose }: { project: string; hi
       term.loadAddon(fit);
       term.open(node);
       emulator.current = term;
+      fitTerminal.current = () => {
+        if (!node.clientWidth || !node.clientHeight) return;
+        term.open(node);
+        fit.fit();
+      };
       let inputQueue = Promise.resolve();
       const inputs = term.onData(data => {
         const current = connection.current;
@@ -68,7 +73,7 @@ export function CodeTerminal({ project, hidden, onClose }: { project: string; hi
       let resizeTimer: ReturnType<typeof setTimeout> | undefined;
       const resized = new ResizeObserver(() => {
         if (!node.clientWidth || !node.clientHeight) return;
-        fit.fit();
+        fitTerminal.current();
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
           const current = connection.current;
@@ -84,6 +89,7 @@ export function CodeTerminal({ project, hidden, onClose }: { project: string; hi
         inputs.dispose();
         term.dispose();
         emulator.current = null;
+        fitTerminal.current = () => {};
       };
     }).catch(() => { if (!canceled) setMessage("โหลดตัวแสดง Terminal ไม่สำเร็จ ลองปิดแล้วเปิด Terminal ใหม่"); });
     return () => {
@@ -95,6 +101,15 @@ export function CodeTerminal({ project, hidden, onClose }: { project: string; hi
       dispose?.();
     };
   }, [project]);
+
+  useLayoutEffect(() => {
+    fitTerminal.current();
+    const frame = ownerWindow?.requestAnimationFrame(() => {
+      fitTerminal.current();
+      emulator.current?.focus();
+    });
+    return () => { if (frame !== undefined) ownerWindow?.cancelAnimationFrame(frame); };
+  }, [ownerWindow]);
 
   async function start(mode: "cmd" | "resume") {
     const term = emulator.current;
@@ -126,9 +141,9 @@ export function CodeTerminal({ project, hidden, onClose }: { project: string; hi
     }
   }
 
-  return <section className={`code-terminal${expanded ? " expanded" : ""}`} hidden={hidden} aria-label="Terminal ของโปรเจกต์">
+  return <section className="code-terminal" aria-label={label}>
     <div className="code-terminal-bar">
-      <strong><TerminalIcon size={16} />Terminal</strong>
+      <strong><TerminalIcon size={16} />{label}</strong>
       {phase === "idle" && <>
         <Button variant="secondary" size="sm" onClick={() => void start("cmd")}>เปิด CMD</Button>
         <Button size="sm" onClick={() => void start("resume")}><code>codex resume</code></Button>
@@ -136,7 +151,6 @@ export function CodeTerminal({ project, hidden, onClose }: { project: string; hi
       {(phase === "starting" || phase === "loading") && <small role="status">{message || "กำลังเปิด Terminal…"}</small>}
       {phase === "idle" && message && <small role="status">{message}</small>}
       <div className="code-terminal-controls">
-        <button className="icon-button" title={expanded ? "ย่อ Terminal" : "ขยาย Terminal"} aria-label={expanded ? "ย่อ Terminal" : "ขยาย Terminal"} onClick={() => setExpanded(value => !value)}>{expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}</button>
         <button className="icon-button" title="ปิด CMD และ Terminal" aria-label="ปิด CMD และ Terminal" onClick={onClose}><X size={17} /></button>
       </div>
     </div>
