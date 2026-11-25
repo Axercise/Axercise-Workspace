@@ -1,0 +1,10 @@
+.code-project-actions { display: flex; justify-content: flex-end; padding: 5px 12px; border-bottom: 1px solid #454545; background: #242424; }
+.code-terminal { display: flex; flex-direction: column; flex: 0 1 clamp(245px, 40dvh, 500px); min-height: 130px; min-width: 0; border-top: 1px solid #626262; background: #171717; }
+.code-terminal[hidden] { display: none; }
+.code-terminal.expanded { flex: 1 1 100%; }
+.code-terminal-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; padding: 5px 8px; background: #292929; border-bottom: 1px solid #454545; }
+.code-terminal-bar strong { display: flex; align-items: center; gap: 5px; font-size: 13px; }
+.code-terminal-bar small { color: #ccc; font-size: 12px; }
+.code-terminal-controls { display: flex; margin-left: auto; gap: 3px; }
+.code-terminal-screen { flex: 1; min-height: 0; padding: 5px 8px; overflow: hidden; }
+.code-terminal-screen .xterm { height: 100%; }

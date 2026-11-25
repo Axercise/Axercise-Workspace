@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, ChevronDown, ChevronRight, Code2, FileCode2, FilePlus2, Folder, FolderOpen, FolderPlus, GitCompareArrows, Loader2, Save, Sparkles, X } from "lucide-react";
+import { ArrowUp, ChevronDown, ChevronRight, Code2, FileCode2, FilePlus2, Folder, FolderOpen, FolderPlus, GitCompareArrows, Loader2, Save, Sparkles, Terminal, X } from "lucide-react";
 import { api } from "@/lib/client";
 import type { CodeEntry, CodeFile, CodeFolderListing, CodeProject, CodeVersion } from "@/lib/code-project";
 import { AppMenu, WorkspaceBack } from "./app-menu";
 import { CodeEditor } from "./code-editor";
+import { CodeTerminal } from "./code-terminal";
 import { Button } from "./ui/button";
 import { Modal } from "./ui/dialog";
 import "./code-workspace.css";
@@ -118,6 +119,7 @@ export function CodeWorkspace() {
 }
 
 function ProjectEditor({ project, onEditState }: { project: CodeProject; onEditState: (open: boolean) => void }) {
+  const [terminalPanel, setTerminalPanel] = useState<"closed" | "visible" | "hidden">("closed");
   const [tree, setTree] = useState<Record<string, CodeEntry[]>>({});
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [folder, setFolder] = useState("");
@@ -201,6 +203,7 @@ function ProjectEditor({ project, onEditState }: { project: CodeProject; onEditS
 
   useEffect(() => {
     function keyboard(event: KeyboardEvent) {
+      if (event.target instanceof HTMLElement && event.target.closest(".code-terminal")) return;
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") { event.preventDefault(); void save(); }
     }
     window.addEventListener("keydown", keyboard, true);
@@ -284,6 +287,7 @@ function ProjectEditor({ project, onEditState }: { project: CodeProject; onEditS
       <Button variant="ghost" size="sm" onClick={() => void run(async () => { await Promise.all(["", ...expanded].map(loadFolder)); })}>โหลดรายการไฟล์ใหม่</Button>
     </aside>
     <section className="code-main" aria-label="ตัวแก้โค้ด">
+      <div className="code-project-actions"><Button variant="secondary" size="sm" aria-expanded={terminalPanel === "visible"} onClick={() => setTerminalPanel(value => value === "visible" ? "hidden" : "visible")}><Terminal size={16} />Terminal</Button></div>
       {tabs.length > 0 && <div className="code-tabs" role="group" aria-label="ไฟล์ที่เปิด">
         {tabs.map(item => <div key={item.path} className={item.path === selected ? "selected" : ""}>
           <button title={item.path} aria-pressed={item.path === selected} onClick={() => select(item.path)}>{dirty(item) ? "● " : ""}{nameOf(item.path)}</button>
@@ -329,6 +333,7 @@ function ProjectEditor({ project, onEditState }: { project: CodeProject; onEditS
         {(suggested || comparison) && <div className="code-diff-labels"><span>{suggested ? "ก่อนแก้" : comparison?.title}</span><span>{suggested ? "ข้อเสนอจาก Developer" : "โค้ดปัจจุบัน"}</span></div>}
         <CodeEditor key={tab.path} path={tab.path} value={suggested?.content ?? tab.draft} original={suggested?.before ?? comparison?.original} readOnly={!!suggested} onChange={value => { if (!suggested) updateDraft(tab.path, value); }} />
       </> : <div className="code-empty"><FileCode2 size={34} /><p>{selected ? "กำลังเปิดไฟล์ หรือไฟล์นี้เปิดไม่ได้" : "เลือกไฟล์จากรายการทางซ้าย"}</p></div>}
+      {terminalPanel !== "closed" && <CodeTerminal project={project.id} hidden={terminalPanel === "hidden"} onClose={() => setTerminalPanel("closed")} />}
       <div className="code-status" role="status">{message || (unsaved ? "มีไฟล์ที่ยังไม่เซฟ" : project.directory)}</div>
     </section>
   </div>;
