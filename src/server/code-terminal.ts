@@ -43,12 +43,14 @@ export function createTerminal(project: CodeProject, mode: "cmd" | "resume", col
   env.COLORTERM = "truecolor";
   let pty: IPty;
   try {
-    pty = spawn(shell, mode === "resume" ? ["/D", "/K", "codex resume"] : ["/D"], {
+    pty = spawn(shell, ["/D", "/K", mode === "resume" ? "chcp 65001>nul & codex resume" : "chcp 65001>nul"], {
       cwd: project.directory,
       name: "xterm-256color",
       cols,
       rows,
       env,
+      // Use the bundled modern ConPTY rather than the legacy inbox conhost.
+      useConptyDll: true,
     });
   } catch {
     throw new AppError("เปิด Windows CMD ไม่สำเร็จ ตรวจว่าโฟลเดอร์ยังอยู่และติดตั้ง dependencies ครบ", 503);
