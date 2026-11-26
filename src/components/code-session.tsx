@@ -18,16 +18,24 @@ export type FloatingCodeView = "code" | "terminal";
 
 export function CodeSession({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [started, setStarted] = useState(false);
+  const [display, setDisplay] = useState<"closed" | "page" | "floating">("closed");
   const [project, setProject] = useState<CodeProject>();
   const [view, setView] = useState<FloatingCodeView>("terminal");
-  const start = useCallback(() => setStarted(true), []);
+  const start = useCallback(() => setDisplay("page"), []);
+  const minimize = useCallback(() => setDisplay("floating"), []);
   const full = pathname === "/code";
+
+  useEffect(() => {
+    setDisplay(value => full ? (value === "floating" ? "page" : value) : (value === "page" ? "closed" : value));
+  }, [full]);
+  useEffect(() => {
+    if (display === "closed") { setProject(undefined); setView("terminal"); }
+  }, [display]);
 
   return <StartCode.Provider value={start}>
     {children}
-    {started && <CodeWindow full={full} view={view} onView={setView} project={project?.name}>
-      <CodeWorkspace floating={!full} floatingView={view} onProjectChange={setProject} />
+    {display !== "closed" && (full || display === "floating") && <CodeWindow full={full} view={view} onView={setView} project={project?.name}>
+      <CodeWorkspace floating={!full} floatingView={view} onProjectChange={setProject} onMinimize={minimize} onExit={start} />
     </CodeWindow>}
   </StartCode.Provider>;
 }

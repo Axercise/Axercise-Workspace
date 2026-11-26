@@ -8,6 +8,8 @@
 .code-picker { padding: 16px 20px; border-bottom: 1px solid #474747; background: #212121; }
 .code-picker form, .code-ai { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 8px; }
 .code-picker .field { flex: 1 1 260px; max-width: 680px; }
+.code-picker form > .field, .code-folder-address > .field { margin: 0; }
+.code-picker form > .button, .code-picker form input, .code-folder-address > .button, .code-folder-address input { height: 52px; }
 .code-picker .code-recent { max-width: 850px; margin-top: 12px; }
 .code-picker [role="status"]:not(:empty) { color: #ffd9d9; margin-top: 10px; }
 body .code-folder-dialog { width: 620px; }

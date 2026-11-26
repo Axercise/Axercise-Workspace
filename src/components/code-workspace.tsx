@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type ComponentProps, type CSSProperties } from "react";
 import Link from "next/link";
 import { ArrowUp, ChevronDown, ChevronRight, Code2, FileCode2, FilePlus2, Folder, FolderOpen, FolderPlus, GitCompareArrows, Loader2, PictureInPicture2, Save, Sparkles, Terminal, X } from "lucide-react";
 import { api } from "@/lib/client";
@@ -31,10 +31,12 @@ type Proposal = { path: string; before: string; content: string; summary: string
 const nameOf = (file: string) => file.split("/").at(-1) || file;
 const dirty = (tab: Tab) => tab.draft !== tab.content;
 
-export function CodeWorkspace({ floating = false, floatingView = "terminal", onProjectChange }: {
+export function CodeWorkspace({ floating = false, floatingView = "terminal", onProjectChange, onMinimize, onExit }: {
   floating?: boolean;
   floatingView?: FloatingCodeView;
   onProjectChange?: (project?: CodeProject) => void;
+  onMinimize?: () => void;
+  onExit?: () => void;
 }) {
   const [recent, setRecent] = useState<CodeProject[]>([]);
   const [project, setProject] = useState<CodeProject>();
@@ -53,6 +55,10 @@ export function CodeWorkspace({ floating = false, floatingView = "terminal", onP
   useEffect(() => { currentDrafts.current = hasDrafts; }, [hasDrafts]);
   useEffect(() => { onProjectChange?.(project); }, [project, onProjectChange]);
   useEffect(() => { if (floating) setBrowseOpen(false); }, [floating]);
+  const leave: ComponentProps<typeof Link>["onNavigate"] = event => {
+    if (currentDrafts.current && !confirm("ปิดหน้า Code และ Terminal และละทิ้งการแก้ไขที่ยังไม่เซฟ?")) { event.preventDefault(); return; }
+    onExit?.();
+  };
 
   useEffect(() => {
     get<CodeProject[]>("projects").then(setRecent).catch(error => setMessage(error.message));
@@ -89,11 +95,11 @@ export function CodeWorkspace({ floating = false, floatingView = "terminal", onP
 
   return <main className="code-workspace" role={floating ? "region" : undefined} aria-label="ตัวแก้โค้ดและ Terminal">
     <header className="code-header">
-      <div><WorkspaceBack /><h1><Code2 size={24} />Code</h1></div>
-      <div><Link className="button button-secondary button-sm" href="/" title="ใช้หน้าอื่นโดยเก็บ Code และ CLI เป็นหน้าต่างลอย"><PictureInPicture2 size={16} />ย่อเป็นหน้าต่าง</Link><CodeAfk />{project && <Button variant="secondary" size="sm" aria-expanded={pickerOpen} disabled={choosing} onClick={() => {
+      <div><WorkspaceBack onNavigate={leave} /><h1><Code2 size={24} />Code</h1></div>
+      <div><Link className="button button-secondary button-sm" href="/" onNavigate={onMinimize} title="ใช้หน้าอื่นโดยเก็บ Code และ CLI เป็นหน้าต่างลอย"><PictureInPicture2 size={16} />ย่อเป็นหน้าต่าง</Link><CodeAfk />{project && <Button variant="secondary" size="sm" aria-expanded={pickerOpen} disabled={choosing} onClick={() => {
         setPickerOpen(!pickerOpen);
         if (!pickerOpen) requestAnimationFrame(() => directoryInput.current?.focus());
-      }}><FolderOpen size={16} />เปลี่ยนโปรเจกต์</Button>}<AppMenu current="code" compact /></div>
+      }}><FolderOpen size={16} />เปลี่ยนโปรเจกต์</Button>}<AppMenu current="code" compact onNavigate={leave} /></div>
     </header>
     {pickerOpen && <section className="code-picker" aria-label="เปิดโปรเจกต์บนเครื่อง">
       <form onSubmit={event => { event.preventDefault(); void openFolder(directory); }}>
