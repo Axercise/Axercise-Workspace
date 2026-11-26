@@ -19,13 +19,15 @@ export function DailyBriefing() {
   const [historyOpen, setHistoryOpen] = useState(false), [loading, setLoading] = useState(true);
   const selected = useRef(""), sequence = useRef(0), initialized = useRef(false);
   const refresh = useCallback(async () => {
-    try { const result = await api<BriefingFeed>("/api/briefings"); setFeed(result); if (!initialized.current) { initialized.current = true; const requested = new URLSearchParams(location.search).get("report"); if (requested) { await open(requested); } else if (result.latest) { await open(result.latest.id); } } else if (selected.current) { const next = await api<BriefingRecord>(`/api/briefings?id=${selected.current}`); if (next.id === selected.current) setReport(next); } }
+    try { const result = await api<BriefingFeed>("/api/briefings"); setFeed(result); if (!initialized.current) { initialized.current = true; const requested = new URLSearchParams(location.search).get("report"); if (requested) { await open(requested, false); } else if (result.latest) { await open(result.latest.id, false); } } else if (selected.current) { const next = await api<BriefingRecord>(`/api/briefings?id=${selected.current}`); if (next.id === selected.current) setReport(next); } }
     catch (e) { setError((e as Error).message); } finally { setLoading(false); }
   }, []);
-  useEffect(() => { void refresh(); const timer = setInterval(refresh, 20000); const focus = () => void refresh(); window.addEventListener("focus", focus); return () => { clearInterval(timer); window.removeEventListener("focus", focus); }; }, [refresh]);
-  async function open(id: string) {
+  useEffect(() => { void refresh(); const timer = setInterval(refresh, 20000); const focus = () => void refresh(); window.addEventListener("focus", focus); return () => { sequence.current++; clearInterval(timer); window.removeEventListener("focus", focus); }; }, [refresh]);
+  async function open(id: string, updateUrl = true) {
+    if (location.pathname !== "/briefing") return;
     const request = ++sequence.current; selected.current = id; setError("");
-    try { const item = await api<BriefingRecord>(`/api/briefings?id=${encodeURIComponent(id)}`); if (request !== sequence.current) return; setReport(item); setPeriod(item.data.period); setHistoryOpen(false); history.replaceState({}, "", `/briefing?report=${id}`); await api("/api/briefings", { method: "POST", body: JSON.stringify({ action: "read", id }) }); setFeed(old => old ? { ...old, history: old.history.map(r => r.id === id ? { ...r, readAt: Date.now() } : r), unread: old.history.filter(r => r.id !== id && !r.readAt).length } : old); }
+    if (updateUrl) history.replaceState({}, "", `/briefing?report=${id}`);
+    try { const item = await api<BriefingRecord>(`/api/briefings?id=${encodeURIComponent(id)}`); if (request !== sequence.current || location.pathname !== "/briefing") return; setReport(item); setPeriod(item.data.period); setHistoryOpen(false); await api("/api/briefings", { method: "POST", body: JSON.stringify({ action: "read", id }) }); setFeed(old => old ? { ...old, history: old.history.map(r => r.id === id ? { ...r, readAt: Date.now() } : r), unread: old.history.filter(r => r.id !== id && !r.readAt).length } : old); }
     catch (e) { if (request === sequence.current) setError((e as Error).message); }
   }
   async function generate() {

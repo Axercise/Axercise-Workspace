@@ -1,7 +1,7 @@
-import { CodeWorkspace } from "@/components/code-workspace";
+import { CodeRoute } from "@/components/code-session";
 import { requireSetup } from "@/server/setup";
 
 export default async function CodePage() {
   await requireSetup();
-  return <CodeWorkspace />;
+  return <CodeRoute />;
 }

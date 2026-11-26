@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { ArrowUp, ChevronDown, ChevronRight, Code2, FileCode2, FilePlus2, Folder, FolderOpen, FolderPlus, GitCompareArrows, Loader2, Save, Sparkles, Terminal, X } from "lucide-react";
+import Link from "next/link";
+import { ArrowUp, ChevronDown, ChevronRight, Code2, FileCode2, FilePlus2, Folder, FolderOpen, FolderPlus, GitCompareArrows, Loader2, PictureInPicture2, Save, Sparkles, Terminal, X } from "lucide-react";
 import { api } from "@/lib/client";
 import type { CodeEntry, CodeFile, CodeFolderListing, CodeProject, CodeVersion } from "@/lib/code-project";
 import { AppMenu, WorkspaceBack } from "./app-menu";
@@ -11,6 +12,7 @@ import { TerminalDock } from "./terminal-dock";
 import { CodeResizeHandle, useCodePanelSize } from "./code-resize";
 import { Button } from "./ui/button";
 import { Modal } from "./ui/dialog";
+import type { FloatingCodeView } from "./code-session";
 import "./code-workspace.css";
 
 const endpoint = "/api/code";
@@ -29,7 +31,11 @@ type Proposal = { path: string; before: string; content: string; summary: string
 const nameOf = (file: string) => file.split("/").at(-1) || file;
 const dirty = (tab: Tab) => tab.draft !== tab.content;
 
-export function CodeWorkspace() {
+export function CodeWorkspace({ floating = false, floatingView = "terminal", onProjectChange }: {
+  floating?: boolean;
+  floatingView?: FloatingCodeView;
+  onProjectChange?: (project?: CodeProject) => void;
+}) {
   const [recent, setRecent] = useState<CodeProject[]>([]);
   const [project, setProject] = useState<CodeProject>();
   const [directory, setDirectory] = useState("");
@@ -45,6 +51,8 @@ export function CodeWorkspace() {
   const [hasDrafts, setHasDrafts] = useState(false);
   const currentDrafts = useRef(false);
   useEffect(() => { currentDrafts.current = hasDrafts; }, [hasDrafts]);
+  useEffect(() => { onProjectChange?.(project); }, [project, onProjectChange]);
+  useEffect(() => { if (floating) setBrowseOpen(false); }, [floating]);
 
   useEffect(() => {
     get<CodeProject[]>("projects").then(setRecent).catch(error => setMessage(error.message));
@@ -79,13 +87,13 @@ export function CodeWorkspace() {
     finally { setChoosing(false); }
   }
 
-  return <main className="code-workspace">
+  return <main className="code-workspace" role={floating ? "region" : undefined} aria-label="ตัวแก้โค้ดและ Terminal">
     <header className="code-header">
-      <div><WorkspaceBack disabled={hasDrafts} /><h1><Code2 size={24} />Code</h1></div>
-      <div><CodeAfk />{project && <Button variant="secondary" size="sm" aria-expanded={pickerOpen} disabled={choosing} onClick={() => {
+      <div><WorkspaceBack /><h1><Code2 size={24} />Code</h1></div>
+      <div><Link className="button button-secondary button-sm" href="/" title="ใช้หน้าอื่นโดยเก็บ Code และ CLI เป็นหน้าต่างลอย"><PictureInPicture2 size={16} />ย่อเป็นหน้าต่าง</Link><CodeAfk />{project && <Button variant="secondary" size="sm" aria-expanded={pickerOpen} disabled={choosing} onClick={() => {
         setPickerOpen(!pickerOpen);
         if (!pickerOpen) requestAnimationFrame(() => directoryInput.current?.focus());
-      }}><FolderOpen size={16} />เปลี่ยนโปรเจกต์</Button>}<AppMenu current="code" compact disabled={hasDrafts} /></div>
+      }}><FolderOpen size={16} />เปลี่ยนโปรเจกต์</Button>}<AppMenu current="code" compact /></div>
     </header>
     {pickerOpen && <section className="code-picker" aria-label="เปิดโปรเจกต์บนเครื่อง">
       <form onSubmit={event => { event.preventDefault(); void openFolder(directory); }}>
@@ -116,15 +124,16 @@ export function CodeWorkspace() {
       </div>
       <div className="modal-footer"><span className="code-folder-selected" title={listing?.directory}>{listing?.directory}</span><Button disabled={browseBusy || choosing || !!browseError || !listing?.selectable} onClick={() => { if (listing) void openFolder(listing.directory); }}>ใช้โฟลเดอร์นี้</Button></div>
     </Modal>
-    {project ? <ProjectEditor key={project.id} project={project} onEditState={setHasDrafts} /> : <div className="code-empty"><FolderOpen size={34} /><p>เลือกโฟลเดอร์เพื่อเปิดไฟล์ในโปรเจกต์</p></div>}
+    {project ? <ProjectEditor key={project.id} project={project} floating={floating} floatingView={floatingView} onEditState={setHasDrafts} /> : <div className="code-empty"><FolderOpen size={34} /><p>เลือกโฟลเดอร์เพื่อเปิดไฟล์ในโปรเจกต์</p></div>}
   </main>;
 }
 
-function ProjectEditor({ project, onEditState }: { project: CodeProject; onEditState: (open: boolean) => void }) {
+function ProjectEditor({ project, floating, floatingView, onEditState }: { project: CodeProject; floating: boolean; floatingView: FloatingCodeView; onEditState: (open: boolean) => void }) {
   const layout = useRef<HTMLDivElement>(null);
   const explorer = useRef<HTMLElement>(null);
   const [explorerWidth, setExplorerWidth] = useCodePanelSize("axercise-code-explorer-width-v1");
   const [terminalPanel, setTerminalPanel] = useState<"closed" | "visible" | "hidden">("closed");
+  useEffect(() => { if (floating && floatingView === "terminal") setTerminalPanel("visible"); }, [floating, floatingView]);
   const [tree, setTree] = useState<Record<string, CodeEntry[]>>({});
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [folder, setFolder] = useState("");
@@ -208,7 +217,7 @@ function ProjectEditor({ project, onEditState }: { project: CodeProject; onEditS
 
   useEffect(() => {
     function keyboard(event: KeyboardEvent) {
-      if (event.target instanceof HTMLElement && event.target.closest(".code-terminal, .code-afk")) return;
+      if (!(event.target instanceof HTMLElement) || !event.target.closest(".code-workspace") || event.target.closest(".code-terminal")) return;
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") { event.preventDefault(); void save(); }
     }
     window.addEventListener("keydown", keyboard, true);
@@ -341,8 +350,9 @@ function ProjectEditor({ project, onEditState }: { project: CodeProject; onEditS
         </div>}
         {(suggested || comparison) && <div className="code-diff-labels"><span>{suggested ? "ก่อนแก้" : comparison?.title}</span><span>{suggested ? "ข้อเสนอจาก Developer" : "โค้ดปัจจุบัน"}</span></div>}
         <CodeEditor key={tab.path} path={tab.path} value={suggested?.content ?? tab.draft} original={suggested?.before ?? comparison?.original} readOnly={!!suggested} onChange={value => { if (!suggested) updateDraft(tab.path, value); }} />
-      </> : <div className="code-empty"><FileCode2 size={34} /><p>{selected ? "กำลังเปิดไฟล์ หรือไฟล์นี้เปิดไม่ได้" : "เลือกไฟล์จากรายการทางซ้าย"}</p></div>}
-      {terminalPanel !== "closed" && <TerminalDock project={project.id} hidden={terminalPanel === "hidden"} onClose={() => setTerminalPanel("closed")} />}
+      </> : <div className="code-empty"><FileCode2 size={34} /><p>{selected ? "กำลังเปิดไฟล์ หรือไฟล์นี้เปิดไม่ได้" : floating ? "ขยายกลับหน้า Code เพื่อเลือกไฟล์" : "เลือกไฟล์จากรายการทางซ้าย"}</p></div>}
+      {floating && floatingView === "terminal" && terminalPanel === "closed" && <div className="code-terminal-reopen code-empty"><Terminal size={28} /><Button size="sm" onClick={() => setTerminalPanel("visible")}>เปิด Terminal</Button></div>}
+      {terminalPanel !== "closed" && <TerminalDock project={project.id} hidden={terminalPanel === "hidden" || (floating && floatingView === "code")} onClose={() => setTerminalPanel("closed")} />}
       <div className="code-status" role="status">{message || (unsaved ? "มีไฟล์ที่ยังไม่เซฟ" : project.directory)}</div>
     </section>
   </div>;

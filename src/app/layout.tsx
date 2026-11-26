@@ -5,6 +5,7 @@ import "./learning.css";
 import "./interface.css";
 import { NotificationCenter } from "@/components/notification-center";
 import { HealthCenter } from "@/components/health-center";
+import { CodeSession } from "@/components/code-session";
 const workspaceFont = localFont({
   src: "./fonts/NotoSansThai-Variable.ttf",
   variable: "--font-workspace",
@@ -13,4 +14,4 @@ const workspaceFont = localFont({
   fallback: ["Segoe UI", "Tahoma", "Arial", "sans-serif"],
 });
 export const metadata: Metadata = { title: "Axercise — your space to do", description: "พื้นที่ทำงานส่วนตัว พร้อม Hermes AI, Calendar, Tasks และ Brain Dump" };
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="th" className={`dark ${workspaceFont.variable}`}><body>{children}<NotificationCenter /><HealthCenter /></body></html>; }
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="th" className={`dark ${workspaceFont.variable}`}><body><CodeSession>{children}<NotificationCenter /><HealthCenter /></CodeSession></body></html>; }

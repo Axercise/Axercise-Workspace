@@ -29,7 +29,7 @@ export function SavedLibrary() {
   }, [query, kind, tag, favorite, trash]);
   useEffect(() => { const timer = setTimeout(() => void refresh(), 200); const poll = setInterval(() => void refresh(), 30000); const focus = () => void refresh(); window.addEventListener("focus", focus); return () => { clearTimeout(timer); clearInterval(poll); window.removeEventListener("focus", focus); }; }, [refresh]);
   useEffect(() => { if (opened.current) return; const id = new URLSearchParams(location.search).get("item"); opened.current = true; if (id) void api<LibraryItem>(`/api/library?id=${encodeURIComponent(id)}`).then(setSelected).catch(e => setError(e.message)); }, []);
-  useEffect(() => { const handler = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); search.current?.focus(); } }; document.addEventListener("keydown", handler); return () => document.removeEventListener("keydown", handler); }, []);
+  useEffect(() => { const handler = (event: KeyboardEvent) => { if (event.target instanceof Element && event.target.closest(".code-session-window, .code-afk")) return; if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); search.current?.focus(); } }; document.addEventListener("keydown", handler); return () => document.removeEventListener("keydown", handler); }, []);
   useEffect(() => { if (!message) return; const timer = setTimeout(() => setMessage(""), 5000); return () => clearTimeout(timer); }, [message]);
   function add(files: File[] = []) { setEditor({ key: crypto.randomUUID(), files }); }
   async function toggleFavorite(item: LibraryItem) {
