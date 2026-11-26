@@ -1049,6 +1049,10 @@ svg {
   display: none;
 }
 
+.calendar-widget-body {
+  display: contents;
+}
+
 .widget {
   display: flex;
   flex-direction: column;
@@ -3153,6 +3157,14 @@ input::placeholder,textarea::placeholder {
   .right-sidebar .tasks-widget {
     flex: 0 0 var(--workspace-tasks-height,max(340px,calc(100dvh - var(--workspace-calendar-default) - 110px)));
     min-height: 280px;
+  }
+  .right-sidebar .calendar-widget-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
   }
   .right-footer {
     flex-shrink: 0;
