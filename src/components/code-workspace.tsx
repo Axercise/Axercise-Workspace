@@ -6,6 +6,7 @@ import { api } from "@/lib/client";
 import type { CodeEntry, CodeFile, CodeFolderListing, CodeProject, CodeVersion } from "@/lib/code-project";
 import { AppMenu, WorkspaceBack } from "./app-menu";
 import { CodeEditor } from "./code-editor";
+import { CodeAfk } from "./code-afk";
 import { TerminalDock } from "./terminal-dock";
 import { CodeResizeHandle, useCodePanelSize } from "./code-resize";
 import { Button } from "./ui/button";
@@ -81,7 +82,7 @@ export function CodeWorkspace() {
   return <main className="code-workspace">
     <header className="code-header">
       <div><WorkspaceBack disabled={hasDrafts} /><h1><Code2 size={24} />Code</h1></div>
-      <div>{project && <Button variant="secondary" size="sm" aria-expanded={pickerOpen} disabled={choosing} onClick={() => {
+      <div><CodeAfk />{project && <Button variant="secondary" size="sm" aria-expanded={pickerOpen} disabled={choosing} onClick={() => {
         setPickerOpen(!pickerOpen);
         if (!pickerOpen) requestAnimationFrame(() => directoryInput.current?.focus());
       }}><FolderOpen size={16} />เปลี่ยนโปรเจกต์</Button>}<AppMenu current="code" compact disabled={hasDrafts} /></div>
@@ -207,7 +208,7 @@ function ProjectEditor({ project, onEditState }: { project: CodeProject; onEditS
 
   useEffect(() => {
     function keyboard(event: KeyboardEvent) {
-      if (event.target instanceof HTMLElement && event.target.closest(".code-terminal")) return;
+      if (event.target instanceof HTMLElement && event.target.closest(".code-terminal, .code-afk")) return;
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") { event.preventDefault(); void save(); }
     }
     window.addEventListener("keydown", keyboard, true);
