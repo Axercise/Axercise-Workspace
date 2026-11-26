@@ -1,6 +1,7 @@
 import { config, updateConfig } from "./store";
 import { AppError } from "./http";
 import { taskSchema, noteSchema, idSchema } from "./schemas";
+import { z } from "zod";
 import type { Task, Note } from "../lib/types";
 import { mergeLinkedTasks } from "./learning-integrations";
 import { readLearning } from "./learning-store";
@@ -51,6 +52,25 @@ export async function saveTask(input: unknown, id?: string) {
   if (id) { const before = await assertParent(id, source); if (before.properties) safelyObserveTaskActivity([toTask(before as unknown as Record<string, unknown>)]); }
   const task = savedTask((id ? await notion.pages.update({ page_id: idSchema.parse(id), properties }) : await notion.pages.create({ parent: { type: "data_source_id", data_source_id: source }, properties })) as unknown as Record<string, unknown>);
   observeTaskCalendar(task, t.calendarEnabled);
+  await syncTaskCalendar(task.id);
+  return decorateTaskCalendar(task);
+}
+const matrixUpdate = z.union([
+  z.object({ important: z.boolean(), urgent: z.boolean() }).strict(),
+  z.object({ status: z.enum(["Todo", "Doing", "Done"]) }).strict(),
+]);
+export async function updateMatrixTask(id: string, input: unknown) {
+  const update = matrixUpdate.parse(input), notion = client(), source = config().notion.tasksId;
+  if (!source) throw new AppError("ยังไม่ได้สร้างฐานข้อมูล Tasks", 409);
+  taskCalendarState();
+  const before = await assertParent(id, source);
+  if (before.in_trash || before.archived) throw new AppError("งานนี้ถูกลบแล้ว กรุณาโหลดรายการใหม่", 409);
+  safelyObserveTaskActivity([toTask(before)]);
+  const properties = "status" in update
+    ? { Status: { select: { name: update.status } } }
+    : { Important: { checkbox: update.important }, Urgent: { checkbox: update.urgent } };
+  const task = savedTask(await notion.pages.update({ page_id: idSchema.parse(id), properties }));
+  observeTaskCalendar(task);
   await syncTaskCalendar(task.id);
   return decorateTaskCalendar(task);
 }

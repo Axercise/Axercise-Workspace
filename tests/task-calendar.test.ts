@@ -71,6 +71,52 @@ test("task edits, timed deadlines, completion and reopening update the same Cale
   await notion.saveTask(taskInput({ status: "Doing" }), task.id); assert.equal(created, 1); assert.equal(event.summary, "การบ้านทดสอบ"); assert.equal(event.extendedProperties.private.axerciseTaskStatus, "Doing");
 });
 
+test("matrix placement preserves newer task details, date, status and the existing Calendar link", async () => {
+  const task = await notion.saveTask(taskInput({ calendarEnabled: true }));
+  const eventId = task.calendar!.eventId;
+  // Simulate changes made in Notion after the board loaded its original card.
+  Object.assign(pages.get(task.id).properties, plain({
+    Name: { title: [{ text: { content: "ชื่อที่แก้ใน Notion" } }] },
+    Details: { rich_text: [{ text: { content: "รายละเอียดใหม่จากอีกช่องทาง" } }] },
+    Deadline: { date: { start: "2030-06-18" } },
+    Status: { select: { name: "Doing" } },
+  }));
+  const route = await import("../src/app/api/notion/route");
+  const response = await route.PATCH(new Request(`http://localhost/api/notion?kind=tasks&action=matrix&id=${task.id}`, {
+    method: "PATCH", headers: { host: "localhost", "x-axercise-client": "workspace" },
+    body: JSON.stringify({ important: false, urgent: true }),
+  }));
+  assert.equal(response.status, 200);
+  const moved = await response.json();
+  assert.equal(moved.important, false);
+  assert.equal(moved.urgent, true);
+  assert.equal(moved.title, "ชื่อที่แก้ใน Notion");
+  assert.equal(moved.details, "รายละเอียดใหม่จากอีกช่องทาง");
+  assert.equal(moved.deadline, "2030-06-18");
+  assert.equal(moved.status, "Doing");
+  assert.equal(moved.calendar.eventId, eventId);
+  assert.equal(created, 1);
+  const done = await notion.updateMatrixTask(task.id, { status: "Done" });
+  assert.equal(done.important, false);
+  assert.equal(done.urgent, true);
+  assert.equal(done.calendar?.eventId, eventId);
+  assert.equal([...events.values()][0].transparency, "transparent");
+});
+
+test("matrix moves reject unavailable, archived or foreign tasks and unrelated update fields", async () => {
+  const task = await notion.saveTask(taskInput());
+  await assert.rejects(notion.updateMatrixTask(task.id, { important: false, urgent: false, title: "overwrite" }));
+  notionDown = true;
+  await assert.rejects(notion.updateMatrixTask(task.id, { important: false, urgent: false }));
+  notionDown = false;
+  assert.equal(pages.get(task.id).properties.Important.checkbox, true);
+  pages.get(task.id).in_trash = true;
+  await assert.rejects(notion.updateMatrixTask(task.id, { important: false, urgent: false }), { status: 409 });
+  pages.get(task.id).in_trash = false;
+  pages.get(task.id).parent.data_source_id = "another-source";
+  await assert.rejects(notion.updateMatrixTask(task.id, { important: false, urgent: false }), { status: 403 });
+});
+
 test("a lost Calendar create response retains the saved task and retries from durable state without duplication", async () => {
   lostCreate = true;
   const task = await notion.saveTask(taskInput({ calendarEnabled: true }));

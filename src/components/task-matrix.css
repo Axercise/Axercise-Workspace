@@ -1,0 +1,65 @@
+body .modal-content.task-matrix-modal {
+  width: min(1320px, calc(100vw - 48px));
+  height: calc(100dvh - 48px);
+  max-height: calc(100dvh - 48px);
+  overflow: hidden;
+  background: #1c1c1c;
+}
+.task-matrix-modal .modal-heading { padding: 16px 22px; align-items: center; }
+.matrix-board-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 12px 20px; border-bottom: 1px solid #494949; }
+.matrix-board-toolbar > span { margin-left: auto; color: #c8c8c8; font-size: 13px; }
+.matrix-search { display: flex; align-items: center; gap: 8px; flex: 1 1 190px; max-width: 350px; }
+.matrix-search svg { color: #c8c8c8; flex-shrink: 0; }
+.matrix-search input { width: 100%; min-width: 0; padding: 6px 10px; font-size: 14px; }
+.matrix-board-feedback { flex-shrink: 0; font-size: 13px; color: #d7d7d7; }
+.matrix-board-feedback p:not(:empty) { margin: 6px 20px; }
+.matrix-board-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  flex: 1; min-height: 0; gap: 14px; padding: 16px 20px;
+}
+.matrix-board-quadrant { display: flex; flex-direction: column; min-height: 0; min-width: 0; border: 1px solid #505050; border-top: 3px solid #aaa; border-radius: 10px; background: #242424; transition: background 120ms, border-color 120ms; }
+.matrix-board-quadrant > header { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; padding: 10px 14px; border-bottom: 1px solid #444; flex-shrink: 0; }
+.matrix-board-quadrant h3 { display: flex; align-items: center; gap: 7px; font-size: 17px; font-weight: 650; }
+.matrix-board-quadrant header p { flex-basis: 100%; font-size: 13px; color: #c5c5c5; }
+.matrix-board-quadrant .priority-dot { width: 7px; height: 7px; background: #bfbfbf; }
+.matrix-board-quadrant.matrix-tone-0 { border-top-color: #bb9191; }
+.matrix-tone-0 .priority-dot { background: #bb9191; }
+.matrix-board-quadrant.matrix-tone-1 { border-top-color: #e4e4e4; }
+.matrix-board-quadrant.matrix-tone-2 { border-top-color: #aaa; }
+.matrix-board-quadrant.matrix-tone-3 { border-top-color: #727272; }
+.matrix-count { margin-left: auto; min-width: 24px; text-align: center; font-size: 13px; color: #eee; border: 1px solid #656565; border-radius: 6px; padding: 0 5px; }
+.matrix-board-list { flex: 1; min-height: 0; overflow: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.matrix-task { background: #303030; border: 1px solid #626262; border-radius: 8px; padding: 10px; flex-shrink: 0; min-width: 0; }
+.matrix-task[draggable="true"] { cursor: grab; }
+.matrix-task.dragging { opacity: .45; }
+.matrix-task[aria-busy="true"] { opacity: .7; }
+.matrix-task-top { display: flex; gap: 8px; align-items: flex-start; }
+.matrix-task-top .task-check { margin-top: 3px; flex-shrink: 0; }
+.matrix-grip { cursor: grab; flex-shrink: 0; padding: 2px; color: #c8c8c8; }
+.matrix-task-title { flex: 1; min-width: 0; text-align: left; overflow-wrap: anywhere; font-size: 15px; font-weight: 600; line-height: 1.6; color: #f3f3f3; }
+.matrix-task-title:hover { text-decoration: underline; text-underline-offset: 3px; }
+.matrix-task-description { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 13px; color: #c6c6c6; margin: 5px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.matrix-course { display: block; color: #dedede; font-size: 12px; margin-top: 5px; }
+.matrix-task-meta { display: flex; flex-wrap: wrap; gap: 8px 12px; font-size: 12px; color: #c2c2c2; margin-top: 6px; }
+.matrix-task-meta > * { display: inline-flex; align-items: center; gap: 4px; }
+.matrix-task-meta .matrix-overdue { color: #f1b5b5; }
+.matrix-move { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #ccc; margin-top: 8px; }
+.matrix-move select { max-width: 190px; padding: 2px 7px; font-size: 12px; background: #242424; }
+.matrix-board-empty { flex: 1; min-height: 65px; display: flex; justify-content: center; align-items: center; gap: 8px; color: #bcbcbc; font-size: 13px; border: 1px dashed #5a5a5a; border-radius: 7px; }
+.matrix-board-quadrant.drop-target { background: #373737; border-color: #f1f1f1; box-shadow: inset 0 0 0 1px #eee; }
+.matrix-board-footer { flex-shrink: 0; max-height: 27vh; overflow-y: auto; border-top: 1px solid #555; }
+.matrix-completed { padding: 9px 20px; }
+.matrix-completed summary { font-size: 14px; cursor: pointer; color: #d4d4d4; }
+.matrix-completed > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: 9px; }
+.matrix-task.done .matrix-task-title { color: #c9c9c9; text-decoration: line-through; }
+.task-matrix-modal :is(button, select, summary):focus-visible { outline: 2px solid #eee; outline-offset: 2px; }
+@media (max-width: 700px) {
+  body .modal-content.task-matrix-modal { width: calc(100vw - 18px); max-width: none; height: calc(100dvh - 20px); max-height: calc(100dvh - 20px); }
+  .matrix-board-toolbar { padding: 10px; gap: 7px; }
+  .matrix-board-toolbar > span { font-size: 12px; margin-left: 0; }
+  .matrix-board-grid { display: flex; flex-direction: column; overflow-y: auto; padding: 10px; gap: 10px; }
+  .matrix-board-quadrant { min-height: 210px; flex-shrink: 0; }
+  .matrix-board-list { flex: auto; max-height: 360px; }
+  .matrix-completed > div { grid-template-columns: minmax(0, 1fr); }
+}
